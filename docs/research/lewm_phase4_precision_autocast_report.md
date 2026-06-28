@@ -150,11 +150,11 @@ warmed serving latency, not cold start.
 ## Decision
 
 Promote `lewm_icem_bucket60_bf16_seed0-2_l40s` as the new accepted LeWM
-planner-changing branch:
+planner-changing branch. It combines embedding reuse, GPU-resident CEM
+bookkeeping, compiled model-cost evaluation, TF32-capable matmul, bucketed
+iCEM, and BF16 autocast scoped only to the model-cost rollout.
 
-```text
-L1 + L2 + L4 + TF32/high matmul + accepted iCEM + model-cost BF16 autocast
-```
+The historical ladder label for this stack is `L1 + L2 + L4 + L6R + L7 + L7h`.
 
 It passes the accepted-iCEM replacement quality rule (`265/300 >= 261/300`) and
 improves same-regime clean planner latency:

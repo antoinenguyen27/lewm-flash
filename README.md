@@ -26,19 +26,22 @@ stack; it does not imply FlashAttention kernels.
 
 The final LeWM-Flash configuration is:
 
-```text
-L1 + L2 + L4 + TF32/high matmul + bucketed iCEM + model-cost BF16 autocast
-```
-
-Concretely:
-
-- cache current/goal embeddings for repeated model-cost calls,
-- remove loop-internal CEM GPU-to-CPU synchronization,
-- compile the tensor-only model-cost helper,
-- use TF32-capable matmul for the repeated model-cost GEMMs,
-- replace exact CEM with validated bucketed iCEM,
-- autocast only `JEPA.get_cost_from_embeddings()` to BF16 and return planner
-  costs as `float32`.
+- The planner reuses the current-observation and goal embeddings instead of
+  recomputing them for every candidate trajectory.
+- The CEM loop avoids forcing GPU values back to the CPU during each optimizer
+  iteration. Scoring stays on the GPU until the planner actually needs the final
+  action.
+- The repeated LeWM model-cost calculation is isolated into a tensor-only helper
+  that PyTorch can compile and warm up before timed serving.
+- Matrix multiplications in that model-cost path use PyTorch's `high` float32
+  matmul setting, allowing NVIDIA TF32 tensor cores where PyTorch considers them
+  valid.
+- The optimizer uses a validated iCEM schedule: it starts with 300 candidate
+  action sequences, keeps the best 30, and evaluates fewer bucketed candidate
+  counts as the distribution narrows.
+- Only the learned model-cost rollout runs under CUDA BF16 autocast. The planner
+  converts costs back to `float32` before ranking candidates and updating the
+  sampling distribution.
 
 Several plausible paths were rejected and are recorded:
 
@@ -57,28 +60,7 @@ modal/                 Modal L40S benchmark entrypoints
 configs/               Human-readable baseline and LeWM-Flash run configs
 results/runs/          Selected metrics/manifests for the headline comparison
 docs/                  Method, reproducibility, upstream, and experiment notes
-scripts/               Small local summary utilities
 tests/                 Focused unit tests for benchmark plumbing and solvers
-```
-
-## Reproduce The Headline Table
-
-The selected run artifacts are committed under `results/runs/`.
-
-```bash
-uv run python scripts/summarize_headline.py
-```
-
-Expected output:
-
-```text
-No-opt planner sum: 94.82 s
-LeWM-Flash planner sum: 23.62 s
-Planner speedup: 4.01x
-No-opt eval wall: 524.18 s
-LeWM-Flash eval wall: 210.55 s
-Eval wall speedup: 2.49x
-Quality: 262/300 -> 265/300
 ```
 
 ## Run A Small Benchmark Smoke
@@ -87,39 +69,16 @@ The full 3x100 sweep is GPU-expensive. A short Modal smoke verifies that the
 benchmark stack, checkpoint staging, and optimized planner still run:
 
 ```bash
-uv run modal run modal/benchmark_app.py::run_lewm_benchmark \
-  --variant icem \
-  --solver icem \
+uv run modal run modal/benchmark_app.py::run_lewm_flash \
   --episodes 2 \
   --seed 0 \
-  --samples 300 \
-  --cem-steps 30 \
-  --topk 30 \
-  --horizon 5 \
-  --receding-horizon 5 \
-  --warm-start \
-  --elite-retention 5 \
-  --colored-noise none \
-  --colored-noise-time raw \
-  --momentum-alpha 0.0 \
-  --sample-decay 1.25 \
-  --sample-count-bucket-size 60 \
-  --compile-cost \
-  --compile-warmup-sample-counts auto \
-  --matmul-precision high \
-  --model-cost-autocast bf16 \
-  --profile cuda-events \
-  --cem-telemetry none \
-  --compile-diagnostics none \
-  --icem-step-telemetry none \
-  --disable-instrumentation \
-  --baseline-run-id lewm_icem_bucket60_bf16_seed0-2_l40s \
-  --quality-gate-result diagnostic \
   --run-id lewm_flash_smoke_seed0_l40s
 ```
 
 See `configs/lewm_flash.yaml` for the full accepted configuration and
-`docs/reproducibility.md` for staging and full-sweep commands.
+`docs/reproducibility.md` for staging and full-sweep commands. The lower-level
+`run_lewm_benchmark` entrypoint remains available for ablations and diagnostics,
+but most users should not need its full flag surface.
 
 ## Tests
 

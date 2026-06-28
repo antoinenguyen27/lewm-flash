@@ -1,6 +1,6 @@
 # Modal Benchmark Operations
 
-This layer provides the authoritative GPU runner for the JEPA MPC optimization ladder.
+This layer provides the authoritative GPU runner for LeWM-Flash benchmarks.
 The Modal image includes `swig` and `build-essential` because
 `stable-worldmodel[env]` pulls `box2d-py`, which builds a native extension during
 image creation.
@@ -126,8 +126,7 @@ Staging logs are persisted at:
 ## Smoke Baseline
 
 ```bash
-uv run modal run modal/benchmark_app.py::run_lewm_benchmark \
-  --variant baseline \
+uv run modal run modal/benchmark_app.py::run_lewm_baseline \
   --seed 0 \
   --episodes 2 \
   --run-id smoke_lewm_baseline_seed0
@@ -145,12 +144,40 @@ Expected artifacts:
 ## Full Baseline
 
 ```bash
-uv run modal run modal/benchmark_app.py::run_lewm_benchmark \
-  --variant baseline \
+uv run modal run modal/benchmark_app.py::run_lewm_baseline \
   --seed 0 \
   --episodes 50 \
   --run-id lewm_baseline_seed0_l40s
 ```
+
+## LeWM-Flash Preset
+
+Use this preset for the accepted optimized planner. It expands to the full
+configuration in `configs/lewm_flash.yaml`, including embedding reuse,
+GPU-resident CEM iteration bookkeeping, compiled model-cost evaluation,
+TF32-capable matmuls, bucketed iCEM, and BF16 autocast scoped only to the
+learned model-cost rollout.
+
+Smoke:
+
+```bash
+uv run modal run modal/benchmark_app.py::run_lewm_flash \
+  --seed 0 \
+  --episodes 2 \
+  --run-id smoke_lewm_flash_seed0
+```
+
+Full 3x100 sweep:
+
+```bash
+uv run modal run modal/benchmark_app.py::run_lewm_flash \
+  --episodes 100 \
+  --seeds 0,1,2 \
+  --run-id lewm_icem_bucket60_bf16_seed0-2_l40s
+```
+
+Use `run_lewm_benchmark` directly only for ablations, profiling experiments, or
+new solver variants that intentionally need the full flag surface.
 
 ## Benchmark Telemetry Modes
 
@@ -829,37 +856,12 @@ evidence, not as a promotion path. See
 `float32`; CEM/iCEM distribution updates, `topk`, action output, image encoding,
 and telemetry stay outside the autocast scope.
 
-Promoted accepted-iCEM + BF16 3x100 command shape:
+Promoted accepted-iCEM + BF16 3x100 command:
 
 ```bash
-uv run modal run modal/benchmark_app.py::run_lewm_benchmark \
-  --variant icem \
-  --solver icem \
+uv run modal run modal/benchmark_app.py::run_lewm_flash \
   --episodes 100 \
   --seeds 0,1,2 \
-  --samples 300 \
-  --cem-steps 30 \
-  --topk 30 \
-  --horizon 5 \
-  --receding-horizon 5 \
-  --warm-start \
-  --elite-retention 5 \
-  --colored-noise none \
-  --colored-noise-time raw \
-  --momentum-alpha 0.0 \
-  --sample-decay 1.25 \
-  --sample-count-bucket-size 60 \
-  --compile-cost \
-  --compile-warmup-sample-counts auto \
-  --matmul-precision high \
-  --model-cost-autocast bf16 \
-  --profile cuda-events \
-  --cem-telemetry none \
-  --compile-diagnostics none \
-  --icem-step-telemetry none \
-  --disable-instrumentation \
-  --baseline-run-id lewm_icem_bucket60_compile_prewarm_seed0-2_l40s \
-  --quality-gate-result diagnostic \
   --run-id lewm_icem_bucket60_bf16_seed0-2_l40s
 ```
 

@@ -4,7 +4,6 @@
 
 ```bash
 uv sync
-uv run python scripts/summarize_headline.py
 ```
 
 Local unit tests:
@@ -51,13 +50,9 @@ dataset from Hugging Face into `jepa-weights`.
 Run per seed:
 
 ```bash
-uv run modal run modal/benchmark_app.py::run_lewm_benchmark \
-  --variant baseline \
-  --solver cem \
+uv run modal run modal/benchmark_app.py::run_lewm_baseline \
   --episodes 100 \
   --seed 0 \
-  --profile cuda-events \
-  --cem-telemetry cuda-events \
   --run-id lewm_baseline_telem100_seed0_l40s
 ```
 
@@ -66,36 +61,15 @@ Repeat for seeds `1` and `2`.
 ## Full LeWM-Flash Sweep
 
 ```bash
-uv run modal run modal/benchmark_app.py::run_lewm_benchmark \
-  --variant icem \
-  --solver icem \
+uv run modal run modal/benchmark_app.py::run_lewm_flash \
   --episodes 100 \
   --seeds 0,1,2 \
-  --samples 300 \
-  --cem-steps 30 \
-  --topk 30 \
-  --horizon 5 \
-  --receding-horizon 5 \
-  --warm-start \
-  --elite-retention 5 \
-  --colored-noise none \
-  --colored-noise-time raw \
-  --momentum-alpha 0.0 \
-  --sample-decay 1.25 \
-  --sample-count-bucket-size 60 \
-  --compile-cost \
-  --compile-warmup-sample-counts auto \
-  --matmul-precision high \
-  --model-cost-autocast bf16 \
-  --profile cuda-events \
-  --cem-telemetry none \
-  --compile-diagnostics none \
-  --icem-step-telemetry none \
-  --disable-instrumentation \
-  --baseline-run-id lewm_icem_bucket60_compile_prewarm_seed0-2_l40s \
-  --quality-gate-result diagnostic \
   --run-id lewm_icem_bucket60_bf16_seed0-2_l40s
 ```
+
+The wrapper expands to the accepted planner configuration in
+`configs/lewm_flash.yaml`. Use the lower-level `run_lewm_benchmark` entrypoint
+only for ablations or new solver experiments.
 
 ## Validate Manifests
 

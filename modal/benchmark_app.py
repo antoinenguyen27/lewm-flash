@@ -15,6 +15,7 @@ GPU_TYPE = "L40S"
 BENCHMARK_CPU_REQUEST = 8.0
 BENCHMARK_CPU_LIMIT = 8.0
 BENCHMARK_CPU = (BENCHMARK_CPU_REQUEST, BENCHMARK_CPU_LIMIT)
+LEWM_FLASH_QUALITY_BASELINE_RUN_ID = "lewm_icem_bucket60_compile_prewarm_seed0-2_l40s"
 WORKDIR = "/workspace"
 LOCAL_SOURCE_IGNORE = [
     ".git/**",
@@ -251,6 +252,25 @@ def _append_lewm_planner_args(
         cmd.extend(["--quality-gate-result", quality_gate_result])
 
 
+def _seed_suffix(seed: int, seeds: str | None) -> str:
+    return f"seeds{seeds.replace(',', '_')}" if seeds else f"seed{seed}"
+
+
+def _append_seed_args(cmd: list[str], *, seed: int, seeds: str | None) -> None:
+    if seeds:
+        cmd.extend(["--seeds", seeds])
+    else:
+        cmd.extend(["--seed", str(seed)])
+
+
+def _run_benchmark_command(cmd: list[str], run_id: str) -> dict[str, str]:
+    try:
+        _run_with_logs(cmd, run_id)
+    finally:
+        results_volume.commit()
+    return {"run_id": run_id}
+
+
 @app.function(
     timeout=20 * 60,
     volumes={"/results": results_volume},
@@ -479,11 +499,126 @@ def run_lewm_benchmark(
         baseline_run_id=baseline_run_id,
         quality_gate_result=quality_gate_result,
     )
-    try:
-        _run_with_logs(cmd, actual_run_id)
-    finally:
-        results_volume.commit()
-    return {"run_id": actual_run_id}
+    return _run_benchmark_command(cmd, actual_run_id)
+
+
+@app.function(
+    gpu=GPU_TYPE,
+    cpu=BENCHMARK_CPU,
+    timeout=60 * 60,
+    volumes={"/weights": weights_volume, "/results": results_volume},
+)
+def run_lewm_baseline(
+    seed: int = 0,
+    seeds: str | None = None,
+    episodes: int = 2,
+    run_id: str | None = None,
+) -> dict[str, str]:
+    """Run the stock LeWM CEM planner with the timing used for comparisons."""
+    actual_run_id = run_id or f"lewm_baseline_{_seed_suffix(seed, seeds)}_l40s"
+    cmd = [
+        "python",
+        "tools/benchmarks/lewm_plan_benchmark.py",
+        "--variant",
+        "baseline",
+        "--episodes",
+        str(episodes),
+        "--run-id",
+        actual_run_id,
+        "--weights-root",
+        "/weights",
+        "--results-root",
+        "/results",
+        "--solver",
+        "cem",
+        "--profile",
+        "cuda-events",
+        "--cem-telemetry",
+        "cuda-events",
+    ]
+    _append_seed_args(cmd, seed=seed, seeds=seeds)
+    return _run_benchmark_command(cmd, actual_run_id)
+
+
+@app.function(
+    gpu=GPU_TYPE,
+    cpu=BENCHMARK_CPU,
+    timeout=60 * 60,
+    volumes={"/weights": weights_volume, "/results": results_volume},
+)
+def run_lewm_flash(
+    seed: int = 0,
+    seeds: str | None = None,
+    episodes: int = 2,
+    run_id: str | None = None,
+    baseline_run_id: str = LEWM_FLASH_QUALITY_BASELINE_RUN_ID,
+    quality_gate_result: str = "diagnostic",
+) -> dict[str, str]:
+    """Run the accepted LeWM-Flash planner preset."""
+    actual_run_id = run_id or f"lewm_flash_{_seed_suffix(seed, seeds)}_l40s"
+    cmd = [
+        "python",
+        "tools/benchmarks/lewm_plan_benchmark.py",
+        "--variant",
+        "icem",
+        "--episodes",
+        str(episodes),
+        "--run-id",
+        actual_run_id,
+        "--weights-root",
+        "/weights",
+        "--results-root",
+        "/results",
+        "--solver",
+        "icem",
+        "--profile",
+        "cuda-events",
+        "--cem-telemetry",
+        "none",
+        "--matmul-precision",
+        "high",
+        "--model-cost-autocast",
+        "bf16",
+        "--samples",
+        "300",
+        "--cem-steps",
+        "30",
+        "--topk",
+        "30",
+        "--horizon",
+        "5",
+        "--receding-horizon",
+        "5",
+        "--warm-start",
+        "true",
+        "--elite-retention",
+        "5",
+        "--colored-noise",
+        "none",
+        "--colored-noise-time",
+        "raw",
+        "--momentum-alpha",
+        "0.0",
+        "--sample-decay",
+        "1.25",
+        "--sample-count-bucket-size",
+        "60",
+        "--compile-cost",
+        "true",
+        "--compile-warmup-sample-counts",
+        "auto",
+        "--compile-diagnostics",
+        "none",
+        "--icem-step-telemetry",
+        "none",
+        "--disable-instrumentation",
+        "--baseline-run-id",
+        baseline_run_id,
+        "--quality-gate-result",
+        quality_gate_result,
+    ]
+    _append_seed_args(cmd, seed=seed, seeds=seeds)
+    return _run_benchmark_command(cmd, actual_run_id)
 
 
 @app.function(

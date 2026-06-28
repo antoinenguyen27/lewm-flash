@@ -4,16 +4,27 @@ LeWM-Flash is a measured optimization ladder for LeWorldModel's MPC planner on
 Push-T. The final accepted branch is not one trick; it combines several
 independently measured changes.
 
-## Final Stack
+## Final Configuration
 
-```text
-L1: cache current/goal embeddings
-L2: remove loop-internal CEM CPU synchronization
-L4: compile JEPA.get_cost_from_embeddings()
-L6R: use TF32/high matmul precision for model-cost GEMMs
-L7: bucketed iCEM with sample decay and compile shape prewarm
-L7h: BF16 autocast only inside model-cost rollout
-```
+LeWM-Flash combines six scoped changes:
+
+1. Reuse the current-observation and goal embeddings across repeated
+   model-cost calls inside one planning query.
+2. Keep CEM iteration bookkeeping on the GPU instead of synchronizing candidate
+   costs back to the CPU on every optimizer step.
+3. Route repeated model-cost evaluation through a tensor-only helper,
+   `JEPA.get_cost_from_embeddings()`, and compile that helper.
+4. Request PyTorch's `high` float32 matmul precision so the model-cost GEMMs can
+   use TF32 tensor cores on NVIDIA hardware that supports them.
+5. Replace exact CEM with bucketed iCEM: candidate counts decay as the sampling
+   distribution narrows, but they are rounded into stable buckets for compile
+   reuse.
+6. Run only the learned model-cost rollout under CUDA BF16 autocast, then return
+   costs to `float32` before iCEM ranking and distribution updates.
+
+The historical experiment ledger maps these to `L1`, `L2`, `L4`, `L6R`, `L7`,
+and `L7h`; those labels are retained only so the public artifact can be traced
+back to the original measurements.
 
 ## Accepted Configuration
 

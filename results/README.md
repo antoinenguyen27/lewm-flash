@@ -13,8 +13,10 @@ Included runs:
 - `lewm_icem_static_chain_eager_seed0-2_l40s`
 - `lewm_icem_static_chain_eager_bf16_seed0-2_l40s`
 
-Recompute the headline summary:
+Validate a selected manifest:
 
 ```bash
-uv run python scripts/summarize_headline.py
+uv run python tools/benchmarks/run_manifest.py validate \
+  --manifest results/runs/lewm_icem_bucket60_bf16_seed0-2_l40s/manifest.json \
+  --planner-changing
 ```
