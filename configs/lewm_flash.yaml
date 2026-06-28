@@ -1,0 +1,28 @@
+name: lewm_flash
+description: Accepted LeWM-Flash planner configuration.
+variant: icem
+solver: icem
+episodes: 100
+seeds: [0, 1, 2]
+samples: 300
+cem_steps: 30
+topk: 30
+horizon: 5
+receding_horizon: 5
+warm_start: true
+elite_retention: 5
+colored_noise: none
+colored_noise_time: raw
+momentum_alpha: 0.0
+sample_decay: 1.25
+sample_count_bucket_size: 60
+compile_cost: true
+compile_warmup_sample_counts: auto
+matmul_precision: high
+model_cost_autocast: bf16
+profile: cuda-events
+cem_telemetry: none
+compile_diagnostics: none
+icem_step_telemetry: none
+disable_instrumentation: true
+run_id: lewm_icem_bucket60_bf16_seed0-2_l40s

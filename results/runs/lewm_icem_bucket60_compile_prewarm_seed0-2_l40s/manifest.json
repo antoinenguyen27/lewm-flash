@@ -1,0 +1,346 @@
+{
+  "artifacts": {
+    "metrics_jsonl": "/results/runs/lewm_icem_bucket60_compile_prewarm_seed0-2_l40s/metrics.jsonl",
+    "profiler_summary": null,
+    "profiler_trace": null,
+    "stderr": "/results/runs/lewm_icem_bucket60_compile_prewarm_seed0-2_l40s/stderr.txt",
+    "stdout": "/results/runs/lewm_icem_bucket60_compile_prewarm_seed0-2_l40s/stdout.txt"
+  },
+  "base_git_commit": "af0550edb53f2150c947b30bf81d3181a2d071d6",
+  "baseline_run_id": "lewm_model_cost_tf32_telem100_l40s",
+  "code_paths": [
+    "lewm/jepa.py",
+    "lewm/solvers/icem.py"
+  ],
+  "command": [
+    "tools/benchmarks/lewm_plan_benchmark.py",
+    "--variant",
+    "icem",
+    "--episodes",
+    "100",
+    "--run-id",
+    "lewm_icem_bucket60_compile_prewarm_seed0-2_l40s",
+    "--weights-root",
+    "/weights",
+    "--results-root",
+    "/results",
+    "--solver",
+    "icem",
+    "--profile",
+    "cuda-events",
+    "--cem-telemetry",
+    "cuda-events",
+    "--matmul-precision",
+    "high",
+    "--seeds",
+    "0,1,2",
+    "--compile-cost",
+    "true",
+    "--compile-warmup-sample-counts",
+    "auto",
+    "--samples",
+    "300",
+    "--cem-steps",
+    "30",
+    "--topk",
+    "30",
+    "--horizon",
+    "5",
+    "--receding-horizon",
+    "5",
+    "--elite-retention",
+    "5",
+    "--warm-start",
+    "true",
+    "--colored-noise",
+    "none",
+    "--colored-noise-time",
+    "raw",
+    "--momentum-alpha",
+    "0.0",
+    "--sample-decay",
+    "1.25",
+    "--sample-count-bucket-size",
+    "60",
+    "--return-best-elite",
+    "false",
+    "--clip-actions",
+    "false",
+    "--baseline-run-id",
+    "lewm_model_cost_tf32_telem100_l40s",
+    "--quality-gate-result",
+    "diagnostic"
+  ],
+  "created_at_utc": "2026-06-28T02:24:15Z",
+  "dataset_sha256": "b6ebd9ac94bbe9e383f6e7a9cd92d74e9aa665ea57b758ed3717b0ee7df8d4fb",
+  "environment": {
+    "cuda": "13.0",
+    "cuda_available": true,
+    "gpu_name": "NVIDIA L40S",
+    "packages": {
+      "datasets": "2.19.2",
+      "hydra_core": "1.3.3",
+      "modal": null,
+      "omegaconf": "2.3.1",
+      "pyarrow": "20.0.0",
+      "stable_pretraining": "0.1.7",
+      "stable_worldmodel": "0.1.1",
+      "torchvision": "0.27.1",
+      "transformers": "4.57.6"
+    },
+    "platform": "Linux-4.19.0-gvisor-x86_64-with-glibc2.36",
+    "python": "3.10.17",
+    "resources": {
+      "benchmark_resource_env": {
+        "JEPA_MODAL_CPU_LIMIT": "8.0",
+        "JEPA_MODAL_CPU_REQUEST": "8.0",
+        "JEPA_MODAL_GPU_TYPE": "L40S"
+      },
+      "cgroup_cpu": {
+        "period_us": 1000000,
+        "quota_cores": 8.0,
+        "quota_us": 8000000,
+        "source": "cgroup_v1"
+      },
+      "cpu_count": 8,
+      "cuda_current_device": 0,
+      "cuda_device_count": 1,
+      "cuda_device_name": "NVIDIA L40S",
+      "cuda_device_uuid": "<torch._C._CUuuid object at 0x2adaee7145f0>",
+      "sched_affinity_count": 8,
+      "thread_env": {
+        "MKL_NUM_THREADS": "8",
+        "OMP_NUM_THREADS": "8",
+        "OPENBLAS_NUM_THREADS": "8"
+      },
+      "torch_num_interop_threads": 4,
+      "torch_num_threads": 8
+    },
+    "torch": "2.12.1+cu130"
+  },
+  "git_diff_sha256": "6c29e09d03157fd7670d81c656840bfce340ee9c9686c47afecb26ac0bc26caa",
+  "metrics_summary": {
+    "cem_calls": {
+      "active_env_count": {
+        "count": 0
+      },
+      "call_count": 3,
+      "compile_diagnostics": {
+        "call_count": 3,
+        "counter_snapshot_available_count": 3,
+        "observation_counts": {
+          "count": 0
+        },
+        "signature_mismatch_count": 0,
+        "signature_unknown_count": 3,
+        "unique_signature_counts": {
+          "count": 0
+        }
+      },
+      "cpu_materialization_count_estimate": {
+        "count": 0
+      },
+      "cpu_wall_ms": {
+        "count": 3,
+        "max": 2938.9114370000016,
+        "mean": 2822.320003999986,
+        "min": 2760.989782999957,
+        "p50": 2767.0587920000003,
+        "p90": 2904.5409080000013,
+        "p99": 2935.4743841000018
+      },
+      "cuda_elapsed_ms": {
+        "count": 3,
+        "max": 2938.276123046875,
+        "mean": 2821.7811686197915,
+        "min": 2760.49560546875,
+        "p50": 2766.57177734375,
+        "p90": 2903.93525390625,
+        "p99": 2934.8420361328126
+      },
+      "final_cpu_materialization_count_estimate": {
+        "count": 3,
+        "max": 25.0,
+        "mean": 24.333333333333332,
+        "min": 24.0,
+        "p50": 24.0,
+        "p90": 24.799999999999997,
+        "p99": 24.98
+      },
+      "input_total_envs": {
+        "count": 3,
+        "max": 22.0,
+        "mean": 21.333333333333332,
+        "min": 21.0,
+        "p50": 21.0,
+        "p90": 21.8,
+        "p99": 21.98
+      },
+      "loop_cpu_materialization_count_estimate": {
+        "count": 3,
+        "max": 0.0,
+        "mean": 0.0,
+        "min": 0.0,
+        "p50": 0.0,
+        "p90": 0.0,
+        "p99": 0.0
+      },
+      "memory": {
+        "cuda_memory_allocated_after_mb": {
+          "count": 3,
+          "max": 216.37451171875,
+          "mean": 147.12337239583334,
+          "min": 77.49755859375,
+          "p50": 147.498046875,
+          "p90": 202.59921875,
+          "p99": 214.996982421875
+        },
+        "cuda_memory_allocated_before_mb": {
+          "count": 3,
+          "max": 216.37451171875,
+          "mean": 147.12337239583334,
+          "min": 77.49755859375,
+          "p50": 147.498046875,
+          "p90": 202.59921875,
+          "p99": 214.996982421875
+        },
+        "cuda_memory_peak_allocated_mb": {
+          "count": 3,
+          "max": 220.3037109375,
+          "mean": 151.05257161458334,
+          "min": 81.4267578125,
+          "p50": 151.42724609375,
+          "p90": 206.52841796875,
+          "p99": 218.926181640625
+        },
+        "cuda_memory_reserved_after_mb": {
+          "count": 3,
+          "max": 442.0,
+          "mean": 370.0,
+          "min": 298.0,
+          "p50": 370.0,
+          "p90": 427.6,
+          "p99": 440.56
+        }
+      },
+      "model_cost_env_candidate_evals": {
+        "count": 3,
+        "max": 62040.0,
+        "mean": 60160.0,
+        "min": 59220.0,
+        "p50": 59220.0,
+        "p90": 61476.0,
+        "p99": 61983.6
+      },
+      "model_cost_evals": {
+        "count": 3,
+        "max": 2820.0,
+        "mean": 2820.0,
+        "min": 2820.0,
+        "p50": 2820.0,
+        "p90": 2820.0,
+        "p99": 2820.0
+      },
+      "output_cost_count": {
+        "count": 3,
+        "max": 22.0,
+        "mean": 21.333333333333332,
+        "min": 21.0,
+        "p50": 21.0,
+        "p90": 21.8,
+        "p99": 21.98
+      },
+      "warmup_excluded": true
+    },
+    "evaluations": {
+      "cem_calls_total": 6,
+      "encode_counts_total": {
+        "goal": 364,
+        "initial": 364,
+        "total": 728,
+        "unknown": 0
+      },
+      "evaluation_time_s": {
+        "count": 3,
+        "max": 91.35539812900001,
+        "mean": 84.44678812233332,
+        "min": 80.72398154499996,
+        "p50": 81.26098469299998,
+        "p90": 89.3365154418,
+        "p99": 91.15350986028001
+      },
+      "model_cost_env_candidate_evals_total": 1026480,
+      "model_cost_evals_total": 16920,
+      "plan_calls_total": 150,
+      "success_rate": {
+        "count": 3,
+        "max": 0.91,
+        "mean": 0.89,
+        "min": 0.88
+      }
+    },
+    "plan_latency_ms": {
+      "count": 144,
+      "max": 3078.45751953125,
+      "mean": 197.0295737054613,
+      "min": 75.9352035522461,
+      "p50": 144.00677490234375,
+      "p90": 182.49833068847659,
+      "p99": 2904.958073730468,
+      "warmup_excluded": true
+    }
+  },
+  "modal": {
+    "cpu_limit": "8.0",
+    "cpu_request": "8.0",
+    "enabled": true,
+    "gpu": "L40S",
+    "image_label": null,
+    "results_volume": "jepa-results",
+    "weights_volume": "jepa-weights"
+  },
+  "model": "lewm-pusht",
+  "num_eval_episodes": 100,
+  "planner": {
+    "action_block": 5,
+    "cem_steps": 30,
+    "cem_telemetry": "cuda-events",
+    "clip_actions": false,
+    "colored_noise": "none",
+    "colored_noise_time": "raw",
+    "compile_cost": true,
+    "compile_diagnostics": "summary",
+    "compile_warmup_history": 1,
+    "compile_warmup_sample_counts": "auto",
+    "elite_retention": 5,
+    "gd_lr": null,
+    "gd_steps": null,
+    "horizon": 5,
+    "matmul_precision": "high",
+    "max_compile_signature_records": 8,
+    "model_cost_evals_per_cem_call": 2820,
+    "momentum_alpha": 0.0,
+    "mppi_temperature": null,
+    "profile": "cuda-events",
+    "receding_horizon": 5,
+    "return_best_elite": false,
+    "sample_count_bucket_size": 60,
+    "sample_decay": 1.25,
+    "samples": 300,
+    "solver_warm_start": null,
+    "topk": 30,
+    "torch_compile_logs": null,
+    "torch_profiler_with_stack": false,
+    "warm_start": true
+  },
+  "quality_gate_result": "diagnostic",
+  "run_id": "lewm_icem_bucket60_compile_prewarm_seed0-2_l40s",
+  "seed_list": [
+    0,
+    1,
+    2
+  ],
+  "semantic_class": "planner",
+  "variant": "icem",
+  "weights_sha256": "a7f1ae0cfbfad8aca613f737d66d12220fa2a8e345c5b46de8b89496c44ced62"
+}

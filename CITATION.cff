@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+title: "LeWM-Flash: Fast MPC planning for LeWorldModel"
+message: "If you use this benchmark artifact, please cite LeWM-Flash and the upstream LeWorldModel work."
+type: software
+authors:
+  - name: "LeWM-Flash contributors"
+version: "0.1.0"
+date-released: "2026-06-29"
+license: MIT
+repository-code: "https://github.com/antoinenguyen27/lewm-flash"
+references:
+  - type: article
+    title: "LeWorldModel: Stable End-to-End Joint-Embedding Predictive Architecture from Pixels"
+    authors:
+      - family-names: Maes
+        given-names: Lucas
+      - family-names: Le Lidec
+        given-names: Quentin
+      - family-names: Scieur
+        given-names: Damien
+      - family-names: LeCun
+        given-names: Yann
+      - family-names: Balestriero
+        given-names: Randall
+    year: 2026
+    url: "https://arxiv.org/abs/2603.19312"

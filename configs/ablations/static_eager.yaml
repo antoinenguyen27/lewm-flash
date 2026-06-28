@@ -1,0 +1,18 @@
+name: static_eager_icem
+description: Static eager iCEM diagnostic; passed quality but not promoted.
+variant: icem_static_compile
+solver: icem_static_compile
+episodes: 100
+seeds: [0, 1, 2]
+samples: 300
+cem_steps: 30
+topk: 30
+horizon: 5
+receding_horizon: 5
+sample_decay: 1.25
+sample_count_bucket_size: 60
+static_chain_compile: false
+compile_cost: false
+matmul_precision: high
+model_cost_autocast: none
+run_id: lewm_icem_static_chain_eager_seed0-2_l40s

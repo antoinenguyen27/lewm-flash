@@ -1,0 +1,12 @@
+name: no_opt_lewm_baseline
+description: Stock LeWM/stable-worldmodel CEM baseline used for the headline comparison.
+variant: baseline
+solver: cem
+episodes: 100
+seeds: [0, 1, 2]
+profile: cuda-events
+cem_telemetry: cuda-events
+run_ids:
+  - lewm_baseline_telem100_seed0_l40s
+  - lewm_baseline_telem100_seed1_l40s
+  - lewm_baseline_telem100_seed2_l40s
