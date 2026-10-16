@@ -25,25 +25,32 @@ For reference, eager FP32 torch needs 601 ms per single-env solve on the same GP
 measured 82.3 ms single-env solve by the env count, because the benchmark solver runs replanning envs one after
 another (`batch_size=1`).
 
-### Push-T benchmark (3 seeds x 100 episodes, H100)
+### Push-T benchmark (3 seeds x 100 episodes, all on H100, same container image)
 
-| Metric | LeWM-Flash | LeWM-MK |
-|---|---:|---:|
-| Push-T success | 261/300 | 261/300 |
-| Warmup-excluded planner time | 18.63 s | 15.44 s |
-| Plan call 26 (26 envs replan) | 2.51-3.02 s | **0.28-0.34 s** |
-| Plan call 1 (all 100 envs replan, warmup-marked) | 10.7-17.5 s | **0.77-1.86 s** (seed 0 includes first-launch setup) |
-| Eval wall time per seed | 53.2-62.6 s | 49.7-50.7 s |
+The no-opt baseline is the stock LeWM / stable-worldmodel CEM planner (300 samples x 30 steps, eager FP32), run with
+the exact flags of `benchmark_app.run_lewm_baseline`.
 
-Runs: `results/runs/lewm_flash_h100_e100_s0-1-2_20261016t101037z` and `lewm_mk_h100_e100_s0-1-2_20261016t104430z`.
+| Metric | No-opt baseline | LeWM-Flash | LeWM-MK | MK vs baseline |
+|---|---:|---:|---:|---:|
+| Push-T success | 261/300 | 261/300 | 261/300 | same |
+| One env's planner solve | ~590-670 ms | 82.3 ms | **41.9 ms** | ~15x |
+| Plan call 1 (all 100 envs, warmup-marked) | 60.5-66.9 s | 10.7-17.5 s | **0.77-1.86 s** | ~80x (warm seeds) |
+| Plan call 26 (21-27 envs replan) | 12.5-17.1 s | 2.51-3.02 s | **0.28-0.34 s** | ~45x |
+| Warmup-excluded planner time | 58.55 s | 18.63 s | 15.44 s | 3.8x |
+| Eval wall time per seed | 118-132 s | 53.2-62.6 s | 49.7-50.7 s | 2.5x |
+
+The baseline's single-env solve is its measured CEM call time per env. The planner time row is dominated by the 48
+non-planning calls per seed (below), which cost about 105 ms each in both the baseline and LeWM-MK runs.
+
+Runs: `results/runs/lewm_baseline_h100_e100_s0-1-2_20261016t191013z`,
+`lewm_flash_h100_e100_s0-1-2_20261016t101037z` and `lewm_mk_h100_e100_s0-1-2_20261016t104430z`.
 Two earlier megakernel builds are also saved. `...101037z` (no two-tile mode) scored 262/300 with 0.37-0.40 s on plan
 26; `...102353z` (with the producer warp) scored 260/300 with 0.31-0.38 s. The success spread (260-262) is within
 binomial noise (about +/-5.6 at 300 episodes).
 
 Only 2 of the 50 plan calls in each seed run the planner: call 1 (100 envs, warmup-marked) and call 26 (26 envs).
-The other 48 calls only pop already-planned actions, and each still costs 74 ms (flash run) to 89-106 ms (the three
-megakernel runs) for 100 envs. No megakernel code runs in those calls. The gap is unexplained: host variance, or the
-`--matmul-precision highest` setting of the megakernel runs touching some preprocessing op, would both fit. That cost sits in the policy's per-call observation
+The other 48 calls only pop already-planned actions, and each still costs about 105 ms for 100 envs in the baseline
+and megakernel runs (74 ms in the LeWM-Flash run). No planner code runs in those calls. That cost sits in the policy's per-call observation
 preprocessing, which no planner kernel touches. It now dominates the headline planner time (48 x ~90 ms is about
 4-5 s per seed), which is why the headline moves far less than plan calls 1 and 26. It is the next thing to fix, and
 it is a policy change, not a kernel change.

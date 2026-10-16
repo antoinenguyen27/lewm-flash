@@ -103,6 +103,8 @@ COMMON_PLANNER = ["--samples", "300", "--cem-steps", "30", "--topk", "30", "--ho
                   "--profile", "cuda-events", "--cem-telemetry", "none", "--compile-diagnostics", "none",
                   "--icem-step-telemetry", "none", "--disable-instrumentation", "--quality-gate-result", "diagnostic"]
 VARIANTS = {
+    # no-opt reference: stock LeWM / stable-worldmodel CEM, exactly the flags of benchmark_app.run_lewm_baseline
+    "baseline": ["--variant", "baseline", "--solver", "cem", "--profile", "cuda-events", "--cem-telemetry", "cuda-events"],
     # accepted LeWM-Flash: torch.compile cost + TF32 + BF16 autocast, iCEM envs solved one after another
     "flash": ["--variant", "icem", "--solver", "icem", "--matmul-precision", "high", "--model-cost-autocast", "bf16",
               "--compile-cost", "true", "--compile-warmup-sample-counts", "auto"],
@@ -122,7 +124,7 @@ def e2e_remote(variant: str, seeds: str, episodes: int, run_id: str) -> str:
                 "JEPA_MODAL_CPU_LIMIT": "8.0"})
     cmd = ["python", "tools/benchmarks/lewm_plan_benchmark.py", "--episodes", str(episodes), "--run-id", run_id,
            "--weights-root", "/weights", "--results-root", "/results", "--seeds", seeds,
-           *VARIANTS[variant], *COMMON_PLANNER]
+           *VARIANTS[variant], *([] if variant == "baseline" else COMMON_PLANNER)]
     run_dir = Path("/results/runs") / run_id
     run_dir.mkdir(parents=True, exist_ok=True)
     try:

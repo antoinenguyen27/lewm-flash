@@ -58,7 +58,9 @@ ThunderKittens kernel. It keeps the planner changes: cached embeddings, GPU-resi
 schedule. One launch runs every replanning env's full 30-step iCEM solve: sampling, action encoder, AdaLN, the
 5-step predictor rollout, cost and top-k.
 
-On H100, against LeWM-Flash in the same image:
+On H100, all stacks in the same image, the no-opt baseline needs ~630 ms per env solve and 58.55 s of warmup-excluded
+planner time (3x100 Push-T); LeWM-MK needs 41.9 ms and 15.44 s, with the same 261/300 success.
+Against LeWM-Flash in the same image:
 - 1 env: 82.3 ms → 41.9 ms per solve.
 - 26 envs: ~2.1 s → 180 ms.
 - 100 envs: ~8.2 s → 651 ms.
