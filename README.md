@@ -51,6 +51,21 @@ Several plausible paths were rejected and are recorded:
 - first iCEM-GD/CEM-GD path,
 - static eager BF16.
 
+## LeWM-MK: Megakernel Track (H100)
+
+`megakernel/` replaces LeWM-Flash's kernel and precision changes (compile, TF32, BF16 autocast) with one persistent
+ThunderKittens kernel. It keeps the planner changes: cached embeddings, GPU-resident iCEM, and the bucketed iCEM
+schedule. One launch runs every replanning env's full 30-step iCEM solve: sampling, action encoder, AdaLN, the
+5-step predictor rollout, cost and top-k.
+
+On H100, against LeWM-Flash in the same image:
+- 1 env: 82.3 ms → 41.9 ms per solve.
+- 26 envs: ~2.1 s → 180 ms.
+- 100 envs: ~8.2 s → 651 ms.
+
+Costs match FP32 as closely as the BF16 path does, and Push-T success is unchanged (261/300 for both). See
+[docs/megakernel.md](docs/megakernel.md).
+
 ## Repository Layout
 
 ```text

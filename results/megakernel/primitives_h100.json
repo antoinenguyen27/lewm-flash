@@ -1,0 +1,18 @@
+{
+ "cl8": {
+  "clusters": 15,
+  "cluster_sync_us": 0.6488524482172242,
+  "grid_sync_us": 1.6040180347628776,
+  "epilogue_gelu_64x64_us": 0.15045122605463812,
+  "epilogue_bias_64x64_us": 0.14966683813546405,
+  "empty_launch_ms": 0.014688000082969666
+ },
+ "cl16": {
+  "clusters": 7,
+  "cluster_sync_us": 0.679451725555173,
+  "grid_sync_us": 1.5600280188165676,
+  "epilogue_gelu_64x64_us": 0.15025111958906315,
+  "epilogue_bias_64x64_us": 0.14991495663252635,
+  "empty_launch_ms": 0.013712000101804733
+ }
+}

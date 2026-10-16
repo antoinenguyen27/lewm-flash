@@ -51,6 +51,7 @@ SEMANTIC_CLASSES = {
     "fused_cem_glue": "numerical",
     "warm_start_cem": "planner",
     "icem": "planner",
+    "icem_mk": "planner",
     "icem_static_compile": "planner",
     "mppi": "planner",
     "cem_gd": "planner",
@@ -71,6 +72,7 @@ CODE_PATHS = {
     "fused_cem_glue": ["lewm/jepa.py", "lewm/solvers/cem_exact.py"],
     "warm_start_cem": ["lewm/jepa.py", "lewm/solvers/cem_exact.py"],
     "icem": ["lewm/jepa.py", "lewm/solvers/icem.py"],
+    "icem_mk": ["lewm/jepa.py", "lewm/solvers/icem.py", "megakernel/lewm_mk.cu", "megakernel/solver.py"],
     "icem_static_compile": [
         "lewm/jepa.py",
         "lewm/solvers/icem_static_compile.py",
@@ -92,6 +94,7 @@ EMBEDDING_CACHE_VARIANTS = {
     "fused_cem_glue",
     "warm_start_cem",
     "icem",
+    "icem_mk",
     "icem_static_compile",
     "mppi",
     "cem_gd",
@@ -269,6 +272,8 @@ def validate_variant_solver_contract(args: argparse.Namespace) -> None:
         )
     if args.variant == "icem" and args.solver != "icem":
         raise ValueError("variant=icem requires --solver icem")
+    if args.variant == "icem_mk" and args.solver != "icem_mk":
+        raise ValueError("variant=icem_mk requires --solver icem_mk")
     if args.variant == "icem_static_compile" and args.solver != "icem_static_compile":
         raise ValueError("variant=icem_static_compile requires --solver icem_static_compile")
     if args.variant == "cem_gd" and args.solver != "cem_gd":
@@ -314,7 +319,7 @@ def planner_hydra_overrides(args: argparse.Namespace) -> list[str]:
     solver_warm_start = getattr(args, "solver_warm_start", None)
     if solver_warm_start is not None and getattr(args, "solver", None) == "cem_exact":
         overrides.append(f"solver.warm_start={solver_warm_start}")
-    if getattr(args, "solver", None) in {"icem", "icem_static_compile", "cem_gd"}:
+    if getattr(args, "solver", None) in {"icem", "icem_mk", "icem_static_compile", "cem_gd"}:
         icem_mapping = (
             ("elite_retention", "solver.elite_retention"),
             ("colored_noise", "solver.colored_noise"),
