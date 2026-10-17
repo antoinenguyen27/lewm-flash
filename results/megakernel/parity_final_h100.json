@@ -1,0 +1,398 @@
+{
+ "gpu": "NVIDIA H100 80GB HBM3",
+ "torch": "2.11.0+cu128",
+ "smem": 231584,
+ "max_clusters": {
+  "8": 15,
+  "16": 7
+ },
+ "config": {
+  "cl": 8,
+  "clusters": 15
+ },
+ "cost_parity": [
+  {
+   "problem": 0,
+   "S": 300,
+   "scale": 1.0,
+   "fp32_cost_mean": 217.70899963378906,
+   "flash_bf16": {
+    "rel_max": 0.002245496027171612,
+    "rel_mean": 0.0004625535220839083,
+    "top30_overlap": 29,
+    "argmin_match": 1
+   },
+   "megakernel": {
+    "rel_max": 0.0014978612307459116,
+    "rel_mean": 0.00036969539360143244,
+    "top30_overlap": 29,
+    "argmin_match": 1
+   },
+   "mk_finite": true
+  },
+  {
+   "problem": 0,
+   "S": 60,
+   "scale": 0.3,
+   "fp32_cost_mean": 209.62689208984375,
+   "flash_bf16": {
+    "rel_max": 0.0008819093345664442,
+    "rel_mean": 0.0002224277995992452,
+    "top30_overlap": 28,
+    "argmin_match": 1
+   },
+   "megakernel": {
+    "rel_max": 0.0008597754640504718,
+    "rel_mean": 0.0002668093075044453,
+    "top30_overlap": 28,
+    "argmin_match": 1
+   },
+   "mk_finite": true
+  },
+  {
+   "problem": 1,
+   "S": 300,
+   "scale": 1.0,
+   "fp32_cost_mean": 226.96697998046875,
+   "flash_bf16": {
+    "rel_max": 0.0021874080412089825,
+    "rel_mean": 0.0003542728372849524,
+    "top30_overlap": 29,
+    "argmin_match": 1
+   },
+   "megakernel": {
+    "rel_max": 0.001053556683473289,
+    "rel_mean": 0.00025996967451646924,
+    "top30_overlap": 30,
+    "argmin_match": 1
+   },
+   "mk_finite": true
+  },
+  {
+   "problem": 1,
+   "S": 60,
+   "scale": 0.3,
+   "fp32_cost_mean": 222.155029296875,
+   "flash_bf16": {
+    "rel_max": 0.0004635684017557651,
+    "rel_mean": 0.00016905955271795392,
+    "top30_overlap": 30,
+    "argmin_match": 1
+   },
+   "megakernel": {
+    "rel_max": 0.0004989498993381858,
+    "rel_mean": 0.00020490746828727424,
+    "top30_overlap": 30,
+    "argmin_match": 1
+   },
+   "mk_finite": true
+  },
+  {
+   "problem": 2,
+   "S": 300,
+   "scale": 1.0,
+   "fp32_cost_mean": 271.7427978515625,
+   "flash_bf16": {
+    "rel_max": 0.004020014777779579,
+    "rel_mean": 0.0007980139343999326,
+    "top30_overlap": 30,
+    "argmin_match": 1
+   },
+   "megakernel": {
+    "rel_max": 0.0020935966167598963,
+    "rel_mean": 0.000449026731075719,
+    "top30_overlap": 30,
+    "argmin_match": 1
+   },
+   "mk_finite": true
+  },
+  {
+   "problem": 2,
+   "S": 60,
+   "scale": 0.3,
+   "fp32_cost_mean": 259.3695373535156,
+   "flash_bf16": {
+    "rel_max": 0.0017649037763476372,
+    "rel_mean": 0.00044167012674733996,
+    "top30_overlap": 29,
+    "argmin_match": 0
+   },
+   "megakernel": {
+    "rel_max": 0.0012977145379409194,
+    "rel_mean": 0.00044777567381970584,
+    "top30_overlap": 29,
+    "argmin_match": 0
+   },
+   "mk_finite": true
+  },
+  {
+   "problem": 3,
+   "S": 300,
+   "scale": 1.0,
+   "fp32_cost_mean": 215.34423828125,
+   "flash_bf16": {
+    "rel_max": 0.003819432808086276,
+    "rel_mean": 0.000731556850951165,
+    "top30_overlap": 30,
+    "argmin_match": 1
+   },
+   "megakernel": {
+    "rel_max": 0.004324242938309908,
+    "rel_mean": 0.0008824232500046492,
+    "top30_overlap": 30,
+    "argmin_match": 1
+   },
+   "mk_finite": true
+  },
+  {
+   "problem": 3,
+   "S": 60,
+   "scale": 0.3,
+   "fp32_cost_mean": 206.4993133544922,
+   "flash_bf16": {
+    "rel_max": 0.001409911084920168,
+    "rel_mean": 0.00048809818690642715,
+    "top30_overlap": 30,
+    "argmin_match": 1
+   },
+   "megakernel": {
+    "rel_max": 0.0017706280341371894,
+    "rel_mean": 0.0006549321697093546,
+    "top30_overlap": 30,
+    "argmin_match": 1
+   },
+   "mk_finite": true
+  }
+ ],
+ "batched_cost_parity": [
+  {
+   "batched_envs": 6,
+   "S": 60,
+   "mk_rel_max": 0.0025883307680487633,
+   "top30_overlap_min": 29
+  },
+  {
+   "batched_envs": 6,
+   "S": 300,
+   "mk_rel_max": 0.0029338879976421595,
+   "top30_overlap_min": 30
+  }
+ ],
+ "sample_counts": [
+  300,
+  240,
+  240,
+  180,
+  180,
+  120,
+  120,
+  120,
+  60,
+  60,
+  60,
+  60,
+  60,
+  60,
+  60,
+  60,
+  60,
+  60,
+  60,
+  60,
+  60,
+  60,
+  60,
+  60,
+  60,
+  60,
+  60,
+  60,
+  60,
+  60
+ ],
+ "mk_solve_ms": {
+  "p50_ms": 43.785024642944336,
+  "mean_ms": 43.79981549580892,
+  "min_ms": 43.6833610534668,
+  "p90_ms": 43.87907028198242,
+  "max_ms": 44.14201736450195,
+  "n": 30
+ },
+ "mk_cost_call_ms": {
+  "300": {
+   "p50_ms": 1.6503680348396301,
+   "mean_ms": 1.6507306694984436,
+   "min_ms": 1.6400320529937744,
+   "p90_ms": 1.6577919721603394,
+   "max_ms": 1.6632319688796997,
+   "n": 30
+  },
+  "240": {
+   "p50_ms": 1.5720639824867249,
+   "mean_ms": 1.5723647991816203,
+   "min_ms": 1.563647985458374,
+   "p90_ms": 1.576032042503357,
+   "max_ms": 1.5792319774627686,
+   "n": 30
+  },
+  "180": {
+   "p50_ms": 1.5346559882164001,
+   "mean_ms": 1.5358591993649802,
+   "min_ms": 1.5303679704666138,
+   "p90_ms": 1.5408320426940918,
+   "max_ms": 1.5492479801177979,
+   "n": 30
+  },
+  "120": {
+   "p50_ms": 1.5312319993972778,
+   "mean_ms": 1.530630389849345,
+   "min_ms": 1.5166399478912354,
+   "p90_ms": 1.5344959497451782,
+   "max_ms": 1.5456639528274536,
+   "n": 30
+  },
+  "60": {
+   "p50_ms": 1.4842080473899841,
+   "mean_ms": 1.484661332766215,
+   "min_ms": 1.4758399724960327,
+   "p90_ms": 1.4895039796829224,
+   "max_ms": 1.496224045753479,
+   "n": 30
+  }
+ },
+ "planner_quality": {
+  "rows": [
+   {
+    "problem": 0,
+    "torch_plan_fp32_cost": 181.6616668701172,
+    "mk_plan_fp32_cost": 181.2555389404297,
+    "mk_final_topk_cost": 181.80455017089844,
+    "mk_std_mean": 0.26200857758522034,
+    "torch_std_mean": 0.2899915874004364
+   },
+   {
+    "problem": 1,
+    "torch_plan_fp32_cost": 204.70388793945312,
+    "mk_plan_fp32_cost": 202.904052734375,
+    "mk_final_topk_cost": 203.7846221923828,
+    "mk_std_mean": 0.2830132246017456,
+    "torch_std_mean": 0.2189738154411316
+   },
+   {
+    "problem": 2,
+    "torch_plan_fp32_cost": 205.17724609375,
+    "mk_plan_fp32_cost": 206.09957885742188,
+    "mk_final_topk_cost": 207.4222412109375,
+    "mk_std_mean": 0.32615867257118225,
+    "torch_std_mean": 0.24706897139549255
+   },
+   {
+    "problem": 3,
+    "torch_plan_fp32_cost": 185.47708129882812,
+    "mk_plan_fp32_cost": 186.6516571044922,
+    "mk_final_topk_cost": 187.31300354003906,
+    "mk_std_mean": 0.2929178476333618,
+    "torch_std_mean": 0.17683078348636627
+   },
+   {
+    "problem": 4,
+    "torch_plan_fp32_cost": 179.19027709960938,
+    "mk_plan_fp32_cost": 179.5977783203125,
+    "mk_final_topk_cost": 179.7429656982422,
+    "mk_std_mean": 0.16422638297080994,
+    "torch_std_mean": 0.25882765650749207
+   },
+   {
+    "problem": 5,
+    "torch_plan_fp32_cost": 233.30372619628906,
+    "mk_plan_fp32_cost": 232.9656982421875,
+    "mk_final_topk_cost": 233.14234924316406,
+    "mk_std_mean": 0.12044352293014526,
+    "torch_std_mean": 0.08926993608474731
+   },
+   {
+    "problem": 6,
+    "torch_plan_fp32_cost": 193.57681274414062,
+    "mk_plan_fp32_cost": 193.60679626464844,
+    "mk_final_topk_cost": 193.724365234375,
+    "mk_std_mean": 0.1249883621931076,
+    "torch_std_mean": 0.12823431193828583
+   },
+   {
+    "problem": 7,
+    "torch_plan_fp32_cost": 182.61288452148438,
+    "mk_plan_fp32_cost": 182.84225463867188,
+    "mk_final_topk_cost": 183.26217651367188,
+    "mk_std_mean": 0.34709206223487854,
+    "torch_std_mean": 0.4208303391933441
+   },
+   {
+    "problem": 8,
+    "torch_plan_fp32_cost": 193.1357421875,
+    "mk_plan_fp32_cost": 191.79852294921875,
+    "mk_final_topk_cost": 192.00804138183594,
+    "mk_std_mean": 0.11345425993204117,
+    "torch_std_mean": 0.14278671145439148
+   },
+   {
+    "problem": 9,
+    "torch_plan_fp32_cost": 163.25888061523438,
+    "mk_plan_fp32_cost": 163.1646728515625,
+    "mk_final_topk_cost": 163.5838623046875,
+    "mk_std_mean": 0.20065802335739136,
+    "torch_std_mean": 0.2504492998123169
+   },
+   {
+    "problem": 10,
+    "torch_plan_fp32_cost": 207.04110717773438,
+    "mk_plan_fp32_cost": 208.48150634765625,
+    "mk_final_topk_cost": 208.55093383789062,
+    "mk_std_mean": 0.1433224380016327,
+    "torch_std_mean": 0.16465117037296295
+   },
+   {
+    "problem": 11,
+    "torch_plan_fp32_cost": 154.77761840820312,
+    "mk_plan_fp32_cost": 156.126953125,
+    "mk_final_topk_cost": 156.62362670898438,
+    "mk_std_mean": 0.2863701581954956,
+    "torch_std_mean": 0.1368461549282074
+   },
+   {
+    "problem": 12,
+    "torch_plan_fp32_cost": 224.5922088623047,
+    "mk_plan_fp32_cost": 223.1584014892578,
+    "mk_final_topk_cost": 224.53854370117188,
+    "mk_std_mean": 0.3001413643360138,
+    "torch_std_mean": 0.34799453616142273
+   },
+   {
+    "problem": 13,
+    "torch_plan_fp32_cost": 168.81561279296875,
+    "mk_plan_fp32_cost": 170.07693481445312,
+    "mk_final_topk_cost": 170.09645080566406,
+    "mk_std_mean": 0.17311398684978485,
+    "torch_std_mean": 0.197978213429451
+   },
+   {
+    "problem": 14,
+    "torch_plan_fp32_cost": 202.10047912597656,
+    "mk_plan_fp32_cost": 197.6859893798828,
+    "mk_final_topk_cost": 199.5467071533203,
+    "mk_std_mean": 0.24871836602687836,
+    "torch_std_mean": 0.1791030913591385
+   },
+   {
+    "problem": 15,
+    "torch_plan_fp32_cost": 170.88800048828125,
+    "mk_plan_fp32_cost": 171.58924865722656,
+    "mk_final_topk_cost": 172.1859588623047,
+    "mk_std_mean": 0.1708192378282547,
+    "torch_std_mean": 0.19716724753379822
+   }
+  ],
+  "torch_median": 189.30641174316406,
+  "mk_median": 189.22509002685547,
+  "mk_better_or_equal": 7
+ }
+}

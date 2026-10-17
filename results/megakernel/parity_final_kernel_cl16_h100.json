@@ -1,0 +1,263 @@
+{
+ "gpu": "NVIDIA H100 80GB HBM3",
+ "torch": "2.11.0+cu128",
+ "smem": 231584,
+ "max_clusters": {
+  "8": 15,
+  "16": 7
+ },
+ "config": {
+  "cl": 16,
+  "clusters": 7
+ },
+ "cost_parity": [
+  {
+   "problem": 0,
+   "S": 300,
+   "scale": 1.0,
+   "fp32_cost_mean": 217.70899963378906,
+   "flash_bf16": {
+    "rel_max": 0.002245496027171612,
+    "rel_mean": 0.0004625535220839083,
+    "top30_overlap": 29,
+    "argmin_match": 1
+   },
+   "megakernel": {
+    "rel_max": 0.0016087867552414536,
+    "rel_mean": 0.0003665764525067061,
+    "top30_overlap": 29,
+    "argmin_match": 1
+   },
+   "mk_finite": true
+  },
+  {
+   "problem": 0,
+   "S": 60,
+   "scale": 0.3,
+   "fp32_cost_mean": 209.62689208984375,
+   "flash_bf16": {
+    "rel_max": 0.0008819093345664442,
+    "rel_mean": 0.0002224277995992452,
+    "top30_overlap": 28,
+    "argmin_match": 1
+   },
+   "megakernel": {
+    "rel_max": 0.0006218479247763753,
+    "rel_mean": 0.0002483135322108865,
+    "top30_overlap": 27,
+    "argmin_match": 1
+   },
+   "mk_finite": true
+  },
+  {
+   "problem": 1,
+   "S": 300,
+   "scale": 1.0,
+   "fp32_cost_mean": 226.96697998046875,
+   "flash_bf16": {
+    "rel_max": 0.0021874080412089825,
+    "rel_mean": 0.0003542728372849524,
+    "top30_overlap": 29,
+    "argmin_match": 1
+   },
+   "megakernel": {
+    "rel_max": 0.0013034320436418056,
+    "rel_mean": 0.00025237316731363535,
+    "top30_overlap": 30,
+    "argmin_match": 1
+   },
+   "mk_finite": true
+  },
+  {
+   "problem": 1,
+   "S": 60,
+   "scale": 0.3,
+   "fp32_cost_mean": 222.155029296875,
+   "flash_bf16": {
+    "rel_max": 0.0004635684017557651,
+    "rel_mean": 0.00016905955271795392,
+    "top30_overlap": 30,
+    "argmin_match": 1
+   },
+   "megakernel": {
+    "rel_max": 0.0006960861501283944,
+    "rel_mean": 0.00021220013150013983,
+    "top30_overlap": 29,
+    "argmin_match": 1
+   },
+   "mk_finite": true
+  },
+  {
+   "problem": 2,
+   "S": 300,
+   "scale": 1.0,
+   "fp32_cost_mean": 271.7427978515625,
+   "flash_bf16": {
+    "rel_max": 0.004020014777779579,
+    "rel_mean": 0.0007980139343999326,
+    "top30_overlap": 30,
+    "argmin_match": 1
+   },
+   "megakernel": {
+    "rel_max": 0.0019624328706413507,
+    "rel_mean": 0.000510889629367739,
+    "top30_overlap": 30,
+    "argmin_match": 1
+   },
+   "mk_finite": true
+  },
+  {
+   "problem": 2,
+   "S": 60,
+   "scale": 0.3,
+   "fp32_cost_mean": 259.3695373535156,
+   "flash_bf16": {
+    "rel_max": 0.0017649037763476372,
+    "rel_mean": 0.00044167012674733996,
+    "top30_overlap": 29,
+    "argmin_match": 0
+   },
+   "megakernel": {
+    "rel_max": 0.0012128185480833054,
+    "rel_mean": 0.0004334465484134853,
+    "top30_overlap": 29,
+    "argmin_match": 0
+   },
+   "mk_finite": true
+  },
+  {
+   "problem": 3,
+   "S": 300,
+   "scale": 1.0,
+   "fp32_cost_mean": 215.34423828125,
+   "flash_bf16": {
+    "rel_max": 0.003819432808086276,
+    "rel_mean": 0.000731556850951165,
+    "top30_overlap": 30,
+    "argmin_match": 1
+   },
+   "megakernel": {
+    "rel_max": 0.0032170661725103855,
+    "rel_mean": 0.0008633293909952044,
+    "top30_overlap": 30,
+    "argmin_match": 1
+   },
+   "mk_finite": true
+  },
+  {
+   "problem": 3,
+   "S": 60,
+   "scale": 0.3,
+   "fp32_cost_mean": 206.4993133544922,
+   "flash_bf16": {
+    "rel_max": 0.001409911084920168,
+    "rel_mean": 0.00048809818690642715,
+    "top30_overlap": 30,
+    "argmin_match": 1
+   },
+   "megakernel": {
+    "rel_max": 0.0019244338618591428,
+    "rel_mean": 0.0006448390777222812,
+    "top30_overlap": 30,
+    "argmin_match": 1
+   },
+   "mk_finite": true
+  }
+ ],
+ "batched_cost_parity": [
+  {
+   "batched_envs": 6,
+   "S": 60,
+   "mk_rel_max": 0.0024491583462804556,
+   "top30_overlap_min": 30
+  },
+  {
+   "batched_envs": 6,
+   "S": 300,
+   "mk_rel_max": 0.002666665706783533,
+   "top30_overlap_min": 29
+  }
+ ],
+ "sample_counts": [
+  300,
+  240,
+  240,
+  180,
+  180,
+  120,
+  120,
+  120,
+  60,
+  60,
+  60,
+  60,
+  60,
+  60,
+  60,
+  60,
+  60,
+  60,
+  60,
+  60,
+  60,
+  60,
+  60,
+  60,
+  60,
+  60,
+  60,
+  60,
+  60,
+  60
+ ],
+ "mk_solve_ms": {
+  "p50_ms": 41.31854438781738,
+  "mean_ms": 41.30617771148682,
+  "min_ms": 41.20003128051758,
+  "p90_ms": 41.35468673706055,
+  "max_ms": 41.388832092285156,
+  "n": 20
+ },
+ "mk_cost_call_ms": {
+  "300": {
+   "p50_ms": 2.34278404712677,
+   "mean_ms": 2.342846941947937,
+   "min_ms": 2.331712007522583,
+   "p90_ms": 2.3499200344085693,
+   "max_ms": 2.3571839332580566,
+   "n": 30
+  },
+  "240": {
+   "p50_ms": 1.670464038848877,
+   "mean_ms": 1.6720768014589946,
+   "min_ms": 1.6652159690856934,
+   "p90_ms": 1.679487943649292,
+   "max_ms": 1.6880320310592651,
+   "n": 30
+  },
+  "180": {
+   "p50_ms": 1.6299039721488953,
+   "mean_ms": 1.6297791918118796,
+   "min_ms": 1.6191999912261963,
+   "p90_ms": 1.6349760293960571,
+   "max_ms": 1.63919997215271,
+   "n": 30
+  },
+  "120": {
+   "p50_ms": 1.4267200231552124,
+   "mean_ms": 1.4271552085876464,
+   "min_ms": 1.4187519550323486,
+   "p90_ms": 1.4331519603729248,
+   "max_ms": 1.4393279552459717,
+   "n": 30
+  },
+  "60": {
+   "p50_ms": 1.3779679536819458,
+   "mean_ms": 1.3786303997039795,
+   "min_ms": 1.3698879480361938,
+   "p90_ms": 1.3848320245742798,
+   "max_ms": 1.3857280015945435,
+   "n": 30
+  }
+ }
+}

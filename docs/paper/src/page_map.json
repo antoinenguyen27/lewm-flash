@@ -1,0 +1,207 @@
+[
+ {
+  "level": 1,
+  "title": "Abstract",
+  "page": 2
+ },
+ {
+  "level": 1,
+  "title": "Acknowledgements",
+  "page": 3
+ },
+ {
+  "level": 1,
+  "title": "Declaration",
+  "page": 3
+ },
+ {
+  "level": 1,
+  "title": "1. Introduction",
+  "page": 5
+ },
+ {
+  "level": 2,
+  "title": "1.1 Background",
+  "page": 5
+ },
+ {
+  "level": 2,
+  "title": "1.2 Research significance",
+  "page": 6
+ },
+ {
+  "level": 2,
+  "title": "1.3 Research questions",
+  "page": 6
+ },
+ {
+  "level": 2,
+  "title": "1.4 Literature review",
+  "page": 7
+ },
+ {
+  "level": 2,
+  "title": "1.5 Research gap and contributions",
+  "page": 10
+ },
+ {
+  "level": 1,
+  "title": "2. Methodology",
+  "page": 11
+ },
+ {
+  "level": 2,
+  "title": "2.1 Research design",
+  "page": 11
+ },
+ {
+  "level": 2,
+  "title": "2.2 System under test",
+  "page": 11
+ },
+ {
+  "level": 2,
+  "title": "2.3 Task and episodes",
+  "page": 13
+ },
+ {
+  "level": 2,
+  "title": "2.4 The ladder",
+  "page": 13
+ },
+ {
+  "level": 2,
+  "title": "2.5 Numerical acceptance",
+  "page": 17
+ },
+ {
+  "level": 2,
+  "title": "2.6 Evaluation",
+  "page": 17
+ },
+ {
+  "level": 2,
+  "title": "2.7 Experimental programme",
+  "page": 18
+ },
+ {
+  "level": 2,
+  "title": "2.8 Implementation and infrastructure",
+  "page": 19
+ },
+ {
+  "level": 1,
+  "title": "3. Results",
+  "page": 20
+ },
+ {
+  "level": 2,
+  "title": "3.1 The ladder end to end",
+  "page": 20
+ },
+ {
+  "level": 2,
+  "title": "3.2 Caching and synchronisation: 1.65\u00d7, exact",
+  "page": 21
+ },
+ {
+  "level": 2,
+  "title": "3.3 iCEM: no gain in eager PyTorch, 1.38\u00d7 in the megakernel",
+  "page": 21
+ },
+ {
+  "level": 2,
+  "title": "3.4 The megakernel: 6.9\u00d7 over eager iCEM, 3.1\u00d7 over LeWM-Flash",
+  "page": 22
+ },
+ {
+  "level": 2,
+  "title": "3.5 The fused encoder: 1.28\u00d7, one launch per plan",
+  "page": 23
+ },
+ {
+  "level": 2,
+  "title": "3.6 Task success is unchanged at every rung",
+  "page": 23
+ },
+ {
+  "level": 2,
+  "title": "3.7 Numerical agreement with the reference",
+  "page": 25
+ },
+ {
+  "level": 2,
+  "title": "3.8 How the kernel reached 41 ms, and what did not work",
+  "page": 25
+ },
+ {
+  "level": 1,
+  "title": "4. Discussion",
+  "page": 28
+ },
+ {
+  "level": 2,
+  "title": "4.1 Answers to the research questions",
+  "page": 28
+ },
+ {
+  "level": 2,
+  "title": "4.2 Why a JEPA planner is a latency problem, not a throughput problem",
+  "page": 28
+ },
+ {
+  "level": 2,
+  "title": "4.3 What the megakernel design needed",
+  "page": 29
+ },
+ {
+  "level": 2,
+  "title": "4.4 Position relative to related methods",
+  "page": 30
+ },
+ {
+  "level": 2,
+  "title": "4.5 Limitations and threats to validity",
+  "page": 31
+ },
+ {
+  "level": 1,
+  "title": "5. Future work",
+  "page": 32
+ },
+ {
+  "level": 1,
+  "title": "6. Conclusion",
+  "page": 33
+ },
+ {
+  "level": 1,
+  "title": "References",
+  "page": 34
+ },
+ {
+  "level": 1,
+  "title": "Appendix A. Per-rung results",
+  "page": 40
+ },
+ {
+  "level": 1,
+  "title": "Appendix B. Configuration",
+  "page": 41
+ },
+ {
+  "level": 1,
+  "title": "Appendix C. Repeatability and the batched regime",
+  "page": 43
+ },
+ {
+  "level": 1,
+  "title": "Appendix D. Compute, cost and incident log",
+  "page": 44
+ },
+ {
+  "level": 1,
+  "title": "Appendix E. Code and data availability",
+  "page": 45
+ }
+]
