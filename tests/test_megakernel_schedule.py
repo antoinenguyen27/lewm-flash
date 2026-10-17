@@ -27,7 +27,11 @@ class MegakernelScheduleTest(unittest.TestCase):
 
     def test_panel_count_covers_model(self) -> None:
         per_layer = 16 * 3 + 16 + 32 + 32 + 18  # qkv per head, out-proj per head, W1/W2 slices, AdaLN columns
-        self.assertEqual(pack.NPANEL, 6 * per_layer + 32 + 32 + 12 + 12)
+        predictor = 6 * per_layer + 32 + 32 + 12 + 12
+        enc_layer = 9 + 3 + 12 + 12  # qkv / out / fc1 N-panels, fc2 (4 K-chunks x 3 N-panels)
+        encoder = 12 + 12 * enc_layer + 32 + 32  # patch embed (4 K-chunks x 3), layers, projector
+        self.assertEqual(pack.OFF["EPATCH"], predictor)
+        self.assertEqual(pack.NPANEL, predictor + encoder)
 
 
 if __name__ == "__main__":

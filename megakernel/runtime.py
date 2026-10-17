@@ -44,19 +44,26 @@ def icem_sample_counts(num_samples=300, n_steps=30, topk=30, sample_decay=1.25, 
 
 
 class Megakernel:
-    def __init__(self, model, ext, cl: int | None = None, clusters: int | None = None, max_envs: int = 1):
+    def __init__(self, model, ext, cl: int | None = None, clusters: int | None = None, max_envs: int = 1,
+                 encoder: bool = False):
         import torch
 
         from megakernel import pack
 
         self.ext = ext
         fw = pack.fold(model)
-        raw, kinds = pack.panels(fw)
+        fe = pack.fold_encoder(model) if encoder else None
+        raw, kinds = pack.panels(fw, fe)
         dev = "cuda"
+        self.encoder = encoder
         self.panels = ext.swizzle_panels(raw.to(dev).contiguous(), kinds.to(dev).contiguous())
         t = lambda k: fw[k].to(dev).float().contiguous()
         self.w = [self.panels, t("b_qkv"), t("b_o"), t("b_1"), t("b_2"), t("b_p1"), t("b_p2"), t("b_e1"), t("b_e2"),
                   t("b_ada"), t("pos"), t("lnf_g"), t("lnf_b")]
+        if encoder:
+            e = lambda k: fe[k].to(dev).float().contiguous()
+            self.w += [e("patch_b"), e("pos"), e("e_bqkv"), e("e_bo"), e("e_b1"), e("e_b2"), e("proj_b1"),
+                       e("proj_b2")]
         f32 = dict(device=dev, dtype=torch.float32)
         bf = dict(device=dev, dtype=torch.bfloat16)
         E = self.max_envs = int(max_envs)
@@ -83,6 +90,16 @@ class Megakernel:
         self.buf = [self.emb0, self.goal, self.init_mean, self.cand_in, self.cand, self.emb_hist, self.cost, self.out,
                     self.cost_out, self.trace, self.actemb, self.mod, self.kv, self.counter, self.err, self.prof,
                     self.st_mean, self.st_std, self.st_cost, self.st_eidx]
+        self.actacc = torch.zeros(2, E * SMAX * 5, 192, **f32)  # action-encoder fp32 partial sums (step parity)
+        self.buf.append(self.actacc)
+        if encoder:  # fused-encoder scratch for up to 2 images (observation + goal) per env
+            rows = 2 * E * 257
+            self.img = torch.zeros(2 * E, 224, 224, 3, device=dev, dtype=torch.uint8)
+            self.img_dst = torch.zeros(2 * E, device=dev, dtype=torch.int32)
+            self.ex = torch.zeros(rows, 192, **f32)
+            self.eqkv = torch.zeros(rows, 576, **bf)
+            self.eattn = torch.zeros(rows, 192, **bf)
+            self.eh = torch.zeros(rows, 768, **bf)
         if cl is None:
             cl = 16 if ext.query_max_clusters(16) >= 8 else 8
         self.cl = cl
@@ -109,12 +126,16 @@ class Megakernel:
         avg = {n: p[:, i].mean().item() / 1e3 for i, n in enumerate(names) if n != "-"}
         return {"cta0_us": cta0, "mean_us": avg}
 
-    def _launch(self, counts, mode, topk=30, elite_ret=5, init_std=1.0, seed=None, envs=1):
+    def _launch(self, counts, mode, topk=30, elite_ret=5, init_std=1.0, seed=None, envs=1, n_img=0):
         if seed is None:
             self.seed += 1
             seed = self.seed
         buf = list(self.buf)
         buf[0], buf[1] = self.emb0[:envs], self.goal[:envs]  # the kernel takes E from emb0's leading dim
+        if counts:
+            self.actacc[0, : envs * counts[0] * 5].zero_()  # step 0's partial sums; the kernel zeroes later steps
+        if n_img:
+            buf += [self.img[:n_img], self.img_dst[:n_img], self.ex, self.eqkv, self.eattn, self.eh]
         self.ext.solve(self.cl, self.clusters, self.w, buf, list(counts), mode, topk, elite_ret, float(init_std),
                        int(seed))
 
@@ -149,6 +170,47 @@ class Megakernel:
         self.st_std[:E].fill_(float(init_std))
         self._launch(counts or icem_sample_counts(), 0, topk=topk, elite_ret=elite_ret, init_std=init_std, seed=seed,
                      envs=E)
+        return self.st_mean[:E].view(E, 5, 10), self.st_std[:E].view(E, 5, 10), self.st_cost[:E]
+
+    def _stage_images(self, obs_u8, goal_u8=None, goal_envs=None):
+        """obs_u8 [E,224,224,3] uint8 (any device); goal_u8 [G,224,224,3] for the envs listed in goal_envs (new
+        goals; the other envs keep their cached goal embedding in self.goal). Zeroes the embeddings that the
+        encoder's projector accumulates into."""
+        import torch
+
+        E = obs_u8.shape[0]
+        if E > self.max_envs:
+            raise ValueError(f"{E} envs > max_envs={self.max_envs}")
+        n = E
+        self.img[:E].copy_(obs_u8, non_blocking=True)
+        dst = list(range(0, 2 * E, 2))
+        self.emb0[:E].zero_()
+        if goal_u8 is not None and len(goal_envs):
+            G = len(goal_envs)
+            self.img[E:E + G].copy_(goal_u8, non_blocking=True)
+            dst += [2 * e + 1 for e in goal_envs]
+            self.goal[torch.as_tensor(goal_envs, device=self.goal.device)] = 0.0
+            n += G
+        self.img_dst[:n].copy_(torch.as_tensor(dst, dtype=torch.int32), non_blocking=True)
+        return E, n
+
+    def encode(self, obs_u8, goal_u8=None, goal_envs=None):
+        """Fused encoder only: embeddings of observation (and listed goal) images -> (emb0 [E,192], goal [E,192])."""
+        E, n = self._stage_images(obs_u8, goal_u8, goal_envs)
+        self._launch([], 0, envs=E, n_img=n)
+        return self.emb0[:E], self.goal[:E]
+
+    def solve_images(self, obs_u8, goal_u8=None, goal_envs=None, init_mean=None, counts=None, init_std=1.0,
+                     seed=None, topk=30, elite_ret=5):
+        """One launch per plan: encode raw frames + run every env's full iCEM solve."""
+        E, n = self._stage_images(obs_u8, goal_u8, goal_envs)
+        if init_mean is None:
+            self.st_mean[:E].zero_()
+        else:
+            self.st_mean[:E].copy_(init_mean.reshape(E, NE))
+        self.st_std[:E].fill_(float(init_std))
+        self._launch(counts or icem_sample_counts(), 0, topk=topk, elite_ret=elite_ret, init_std=init_std, seed=seed,
+                     envs=E, n_img=n)
         return self.st_mean[:E].view(E, 5, 10), self.st_std[:E].view(E, 5, 10), self.st_cost[:E]
 
     def solve(self, emb, goal, init_mean=None, **kw):

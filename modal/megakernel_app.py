@@ -102,6 +102,29 @@ COMMON_PLANNER = ["--samples", "300", "--cem-steps", "30", "--topk", "30", "--ho
                   "raw", "--momentum-alpha", "0.0", "--sample-decay", "1.25", "--sample-count-bucket-size", "60",
                   "--profile", "cuda-events", "--cem-telemetry", "none", "--compile-diagnostics", "none",
                   "--icem-step-telemetry", "none", "--disable-instrumentation", "--quality-gate-result", "diagnostic"]
+ICEM_PLANNER = ["--samples", "300", "--cem-steps", "30", "--topk", "30", "--horizon", "5", "--receding-horizon", "5",
+                "--warm-start", "true", "--elite-retention", "5", "--colored-noise", "none", "--colored-noise-time", "raw",
+                "--momentum-alpha", "0.0", "--sample-decay", "1.25", "--sample-count-bucket-size", "60"]
+CLEAN = ["--profile", "cuda-events", "--cem-telemetry", "none", "--compile-diagnostics", "none",
+         "--icem-step-telemetry", "none", "--disable-instrumentation", "--quality-gate-result", "diagnostic"]
+# The H100 optimization ladder: each rung adds one change to the previous one (see docs/ladder.md).
+LADDER = {
+    "r0": ["--variant", "baseline", "--solver", "cem", *CLEAN],                       # stock LeWM CEM, eager FP32
+    "r1": ["--variant", "cem_exact_no_cpu_sync", "--solver", "cem_exact", *CLEAN],    # + cached embeddings, no CPU sync
+    "r2": ["--variant", "icem", "--solver", "icem", "--matmul-precision", "highest", "--model-cost-autocast", "none",
+           "--compile-cost", "false", *ICEM_PLANNER, *CLEAN],                            # + iCEM (eager FP32)
+    "r2b": ["--variant", "icem", "--solver", "icem", "--matmul-precision", "high", "--model-cost-autocast", "bf16",
+            "--compile-cost", "true", "--compile-warmup-sample-counts", "auto", *ICEM_PLANNER, *CLEAN],  # LeWM-Flash
+    "r3": ["--variant", "icem_mk", "--solver", "icem_mk", "--matmul-precision", "highest", "--model-cost-autocast",
+           "none", "--compile-cost", "false", *ICEM_PLANNER, *CLEAN],                    # + megakernel
+    "r4": ["--variant", "icem_mk_fused", "--solver", "icem_mk_fused", "--matmul-precision", "highest",
+           "--model-cost-autocast", "none", "--compile-cost", "false", *ICEM_PLANNER, *CLEAN],  # + fused encoder
+    "r3cem": ["--variant", "icem_mk", "--solver", "icem_mk", "--matmul-precision", "highest", "--model-cost-autocast",
+              "none", "--compile-cost", "false", "--samples", "300", "--cem-steps", "30", "--topk", "30",
+              "--horizon", "5", "--receding-horizon", "5", "--warm-start", "true", "--elite-retention", "0",
+              "--colored-noise", "none", "--colored-noise-time", "raw", "--momentum-alpha", "0.0",
+              "--sample-decay", "1.0", "--sample-count-bucket-size", "0", *CLEAN],     # megakernel running plain CEM
+}
 VARIANTS = {
     # no-opt reference: stock LeWM / stable-worldmodel CEM, exactly the flags of benchmark_app.run_lewm_baseline
     "baseline": ["--variant", "baseline", "--solver", "cem", "--profile", "cuda-events", "--cem-telemetry", "cuda-events"],
@@ -116,15 +139,20 @@ VARIANTS = {
 
 @app.function(gpu=GPU, cpu=8.0, timeout=60 * 60, image=e2e_image,
               volumes={"/weights": weights_volume, "/results": results_volume, "/mk": mk_volume})
-def e2e_remote(variant: str, seeds: str, episodes: int, run_id: str) -> str:
+def e2e_remote(variant: str, seeds: str, episodes: int, run_id: str, batch1: bool = False) -> str:
     env = os.environ.copy()
     env.update({"STABLEWM_HOME": "/weights", "HF_HOME": "/weights/cache/huggingface",
                 "HUGGINGFACE_HUB_CACHE": "/weights/cache/huggingface/hub", "TORCH_HOME": "/weights/cache/torch",
                 "MUJOCO_GL": "egl", "JEPA_MODAL_GPU_TYPE": GPU, "JEPA_MODAL_CPU_REQUEST": "8.0",
                 "JEPA_MODAL_CPU_LIMIT": "8.0"})
+    if batch1:
+        env["LEWM_MK_MAX_ENVS"] = "1"
+        env["LEWM_MK_TIMING"] = "1"
+    flags = LADDER[variant] if variant in LADDER else [*VARIANTS[variant], *([] if variant == "baseline" else COMMON_PLANNER)]
     cmd = ["python", "tools/benchmarks/lewm_plan_benchmark.py", "--episodes", str(episodes), "--run-id", run_id,
-           "--weights-root", "/weights", "--results-root", "/results", "--seeds", seeds,
-           *VARIANTS[variant], *([] if variant == "baseline" else COMMON_PLANNER)]
+           "--weights-root", "/weights", "--results-root", "/results", "--seeds", seeds, *flags]
+    if batch1:
+        cmd += ["--warmup-plans", "0"]  # every plan is recorded; the analysis drops the first (warmup) seed
     run_dir = Path("/results/runs") / run_id
     run_dir.mkdir(parents=True, exist_ok=True)
     try:
@@ -136,6 +164,44 @@ def e2e_remote(variant: str, seeds: str, episodes: int, run_id: str) -> str:
     if rc != 0:
         raise RuntimeError(f"benchmark failed rc={rc}:\n" + "\n".join(tail))
     return run_id
+
+
+@app.function(gpu=GPU, timeout=30 * 60, image=e2e_image,
+              volumes={"/weights": weights_volume, "/mk": mk_volume})
+def check_e2e_remote(name: str, run: str, args: str = "") -> dict:
+    """Checks that need the full pickled JEPA / dataset (stable-worldmodel stack)."""
+    import importlib
+
+    sys.path.insert(0, WORKDIR)
+    os.chdir(WORKDIR)
+    mk_volume.reload()
+    mod = importlib.import_module(f"megakernel.{name}")
+    out = mod.run("/weights/lewm/pusht", f"/mk/{run}", "/mk/build", args)
+    mk_volume.commit()
+    return out
+
+
+@app.local_entrypoint()
+def check_e2e(name: str = "enc_parity", args: str = "") -> None:
+    import json
+
+    print(json.dumps(check_e2e_remote.remote(name, f"{name}-h100-{_stamp()}", args), indent=1, default=str)[:4000])
+
+
+@app.local_entrypoint()
+def ladder(rungs: str = "r0,r1,r2,r2b,r3,r3cem", mode: str = "batch1", n_seeds: int = 41) -> None:
+    """mode=batch1: one env per episode over n_seeds seeds (the first is warmup) -> end-to-end batch-1 plan latency.
+    mode=quality: 3 seeds x 100 episodes -> Push-T success."""
+    stamp = _stamp()
+    batch1 = mode == "batch1"
+    seeds = ",".join(str(1000 + i) for i in range(n_seeds)) if batch1 else "0,1,2"
+    episodes = 1 if batch1 else 100
+    calls = []
+    for r in rungs.split(","):
+        run_id = f"ladder_{r}_{mode}_h100_{stamp}"
+        calls.append(e2e_remote.spawn(r, seeds, episodes, run_id, batch1))
+    for c in calls:
+        print(c.get())
 
 
 @app.local_entrypoint()

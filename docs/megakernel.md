@@ -9,6 +9,10 @@ top-k and elite mean/std update. The host only sees the final distribution.
 
 Hardware scope: NVIDIA H100 80GB HBM3 (sm_90a, WGMMA, clusters, DSMEM). Not built for L40S.
 
+> **Current headline:** a full batch-1 plan, including the fused encoder, takes **46.5 ms** on H100 against 622 ms for
+> the reference LeWM implementation (13.4x), with unchanged Push-T success. See [ladder.md](ladder.md). The sections
+> below are the earlier predictor-only megakernel results (R3).
+
 ## Results (H100, same container image for both stacks)
 
 ### Planner kernel latency

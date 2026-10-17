@@ -8,8 +8,10 @@ OFF_* constants in lewm_mk.cu.
 from __future__ import annotations
 
 D, NH, DH, FF, NL, HID_E, AD = 192, 16, 64, 2048, 6, 768, 10
-OFF = dict(QKV=0, WO=288, W1=384, W2=576, P1=768, P2=800, E1=832, E2=844, ADA=856)
-NPANEL = 964
+OFF = dict(QKV=0, WO=288, W1=384, W2=576, P1=768, P2=800, E1=832, E2=844, ADA=856,
+           EPATCH=964, EQKV=976, EOUT=1084, EFC1=1120, EFC2=1264, EPROJ1=1408, EPROJ2=1440)
+NPANEL = 1472
+ENC_LAYERS, ENC_TOK, ENC_MLP = 12, 257, 768
 
 
 def fold(model):
@@ -59,11 +61,13 @@ def fold(model):
     return out
 
 
-def panels(fw):
-    """Return (raw [NPANEL, 192*64] bf16 row-major panels, kinds [NPANEL] int32: 0 = P, 1 = Q)."""
+def panels(fw, fe=None):
+    """Return (raw [NPANEL, 192*64] bf16 row-major panels, kinds [NPANEL] int32: 0 = P, 1 = Q).
+
+    fe: folded encoder (fold_encoder) to also pack the fused-encoder panels; their slots stay zero otherwise."""
     import torch
 
-    raw = torch.zeros(NPANEL, 192 * 64, dtype=torch.float32)
+    raw = torch.zeros(NPANEL, 192 * 64, dtype=torch.float32)  # encoder panels (ids >= EPATCH) are filled separately
     kinds = torch.zeros(NPANEL, dtype=torch.int32)
 
     def put(i, mat, kind):
@@ -89,4 +93,81 @@ def panels(fw):
     for j in range(HID_E // 64):
         put(OFF["E1"] + j, e1[:, j * 64:(j + 1) * 64], 0)
         put(OFF["E2"] + j, fw["e2"][j * 64:(j + 1) * 64, :], 1)
+    if fe is not None:
+        encoder_panels(fe, raw, kinds)
     return raw.to(torch.bfloat16), kinds
+
+
+def fold_encoder(model):
+    """ViT-tiny encoder + projector folded for the megakernel (GEMM orientation y = x @ W + b, fp32 on CPU).
+
+    Every LayerNorm affine is folded into the next matmul (LN1 -> q/k/v, LN2 -> fc1, final LN -> projector fc1), so
+    the kernel only normalizes; the projector's eval BatchNorm is folded into its first matmul's output columns.
+    """
+    import torch
+
+    f = lambda t: t.detach().float().cpu()
+    vit = model.encoder
+    emb = vit.embeddings
+    assert emb.position_embeddings.shape[1] == ENC_TOK, emb.position_embeddings.shape
+    out = {}
+    wp = f(emb.patch_embeddings.projection.weight).reshape(D, -1).t()  # [588, 192], k = c*196 + ky*14 + kx
+    out["patch_w"] = torch.zeros(768, D)
+    out["patch_w"][: wp.shape[0]] = wp
+    out["patch_b"] = f(emb.patch_embeddings.projection.bias)
+    pos = f(emb.position_embeddings)[0]  # [257, 192]
+    out["pos"] = pos.clone()
+    out["pos"][0] = pos[0] + f(emb.cls_token)[0, 0]  # CLS row: cls token + position 0
+    qkv, bqkv, wo, bo, w1, b1, w2, b2 = ([] for _ in range(8))
+    for blk in vit.encoder.layer:
+        g, b = f(blk.layernorm_before.weight), f(blk.layernorm_before.bias)
+        att = blk.attention.attention
+        wt = torch.cat([f(att.query.weight).t(), f(att.key.weight).t(), f(att.value.weight).t()], dim=1)  # [192,576]
+        bt = torch.cat([f(att.query.bias), f(att.key.bias), f(att.value.bias)])
+        qkv.append(g[:, None] * wt)
+        bqkv.append(b @ wt + bt)
+        wo.append(f(blk.attention.output.dense.weight).t())
+        bo.append(f(blk.attention.output.dense.bias))
+        g, b = f(blk.layernorm_after.weight), f(blk.layernorm_after.bias)
+        w1t = f(blk.intermediate.dense.weight).t()  # [192, 768]
+        w1.append(g[:, None] * w1t)
+        b1.append(b @ w1t + f(blk.intermediate.dense.bias))
+        w2.append(f(blk.output.dense.weight).t())  # [768, 192]
+        b2.append(f(blk.output.dense.bias))
+    out.update(e_qkv=torch.stack(qkv), e_bqkv=torch.stack(bqkv), e_wo=torch.stack(wo), e_bo=torch.stack(bo),
+               e_w1=torch.stack(w1), e_b1=torch.stack(b1), e_w2=torch.stack(w2), e_b2=torch.stack(b2))
+    lin1, bn, lin2 = model.projector.net[0], model.projector.net[1], model.projector.net[3]
+    g, b = f(vit.layernorm.weight), f(vit.layernorm.bias)
+    w1t = f(lin1.weight).t()  # [192, 2048]
+    scale = f(bn.weight) / torch.sqrt(f(bn.running_var) + bn.eps)
+    out["proj_w1"] = (g[:, None] * w1t) * scale[None, :]
+    out["proj_b1"] = ((b @ w1t + f(lin1.bias)) - f(bn.running_mean)) * scale + f(bn.bias)
+    out["proj_w2"] = f(lin2.weight).t()  # [2048, 192]
+    out["proj_b2"] = f(lin2.bias)
+    out["ln_eps"] = float(vit.layernorm.eps)
+    return out
+
+
+def encoder_panels(fe, raw, kinds):
+    """Write the encoder panels into the shared raw / kinds arrays (ids from OFF)."""
+    def put(i, mat, kind):
+        assert mat.shape == ((192, 64) if kind == 0 else (64, 192)), (i, mat.shape)
+        raw[i] = mat.reshape(-1).to(raw.dtype)
+        kinds[i] = kind
+
+    for kc in range(4):
+        for n in range(3):
+            put(OFF["EPATCH"] + kc * 3 + n, fe["patch_w"][kc * 192:(kc + 1) * 192, n * 64:(n + 1) * 64], 0)
+    for l in range(ENC_LAYERS):
+        for n in range(9):
+            put(OFF["EQKV"] + l * 9 + n, fe["e_qkv"][l][:, n * 64:(n + 1) * 64], 0)
+        for n in range(3):
+            put(OFF["EOUT"] + l * 3 + n, fe["e_wo"][l][:, n * 64:(n + 1) * 64], 0)
+        for n in range(12):
+            put(OFF["EFC1"] + l * 12 + n, fe["e_w1"][l][:, n * 64:(n + 1) * 64], 0)
+        for kc in range(4):
+            for n in range(3):
+                put(OFF["EFC2"] + l * 12 + kc * 3 + n, fe["e_w2"][l][kc * 192:(kc + 1) * 192, n * 64:(n + 1) * 64], 0)
+    for s in range(32):
+        put(OFF["EPROJ1"] + s, fe["proj_w1"][:, s * 64:(s + 1) * 64], 0)
+        put(OFF["EPROJ2"] + s, fe["proj_w2"][s * 64:(s + 1) * 64, :], 1)

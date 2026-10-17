@@ -53,20 +53,22 @@ Several plausible paths were rejected and are recorded:
 
 ## LeWM-MK: Megakernel Track (H100)
 
-`megakernel/` replaces LeWM-Flash's kernel and precision changes (compile, TF32, BF16 autocast) with one persistent
-ThunderKittens kernel. It keeps the planner changes: cached embeddings, GPU-resident iCEM, and the bucketed iCEM
-schedule. One launch runs every replanning env's full 30-step iCEM solve: sampling, action encoder, AdaLN, the
-5-step predictor rollout, cost and top-k.
+`megakernel/` runs a whole LeWM plan as one persistent ThunderKittens H100 kernel launch: the ViT encoder, the
+action encoder, AdaLN, the 5-step predictor rollout, and all 30 iCEM steps. It replaces LeWM-Flash's compile, TF32
+and BF16 autocast.
 
-On H100, all stacks in the same image, the no-opt baseline needs ~630 ms per env solve and 58.55 s of warmup-excluded
-planner time (3x100 Push-T); LeWM-MK needs 41.9 ms and 15.44 s, with the same 261/300 success.
-Against LeWM-Flash in the same image:
-- 1 env: 82.3 ms → 41.9 ms per solve.
-- 26 envs: ~2.1 s → 180 ms.
-- 100 envs: ~8.2 s → 651 ms.
+On one H100, for one robot (batch-1 end-to-end plan latency), against the reference LeWM implementation:
 
-Costs match FP32 as closely as the BF16 path does, and Push-T success is unchanged (261/300 for both). See
-[docs/megakernel.md](docs/megakernel.md).
+| | Plan p50 | vs reference | Push-T success |
+|---|---:|---:|---:|
+| Reference LeWM (stock CEM, eager FP32) | 622 ms | 1x | 261/300 |
+| + embedding caching (exact) | 377 ms | 1.65x | 263/300 |
+| + iCEM | 410 ms | 1.5x | 265/300 |
+| LeWM-Flash (+ compile / TF32 / BF16) | 182 ms | 3.4x | 261/300 |
+| + megakernel (predictor + iCEM loop) | 59 ms | 10.5x | 262/300 |
+| **+ fused encoder: one launch per plan** | **46.5 ms** | **13.4x** | 260/300 |
+
+See [docs/ladder.md](docs/ladder.md) for the ladder and [docs/megakernel.md](docs/megakernel.md) for the kernel.
 
 ## Repository Layout
 
