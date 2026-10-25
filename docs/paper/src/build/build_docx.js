@@ -76,6 +76,11 @@ while (i < lines.length) {
   if (L.startsWith("%ENDREFS")) { flushParagraph(buf); inRefs = false; i++; continue; }
   if (L.startsWith("%ABSTRACT")) { flushParagraph(buf); inAbstract = true; i++; continue; }
   if (L.startsWith("%ENDABSTRACT")) { flushParagraph(buf); inAbstract = false; i++; continue; }
+  if (L.startsWith("```")) { flushParagraph(buf); i++; const code = [];
+    while (i < lines.length && !lines[i].startsWith("```")) code.push(lines[i++]); i++;
+    code.forEach((c, k) => children.push(new Paragraph({ children: [new TextRun({ text: c || " ", font: "Courier New", size: BODY_SIZE - 4 })],
+      shading: { type: ShadingType.CLEAR, fill: "F3F4F6", color: "auto" }, spacing: { before: k === 0 ? 80 : 0, after: k === code.length - 1 ? 160 : 0, line: 240 } })));
+    continue; }
   if (L.startsWith("%TABLE:")) { flushParagraph(buf); pendingTableCaption = L.slice(7).trim(); i++; continue; }
   if (L.startsWith("%APPENDIX")) { flushParagraph(buf); tabPrefix = L.slice(9).trim(); tabN = 0; i++; continue; }
   if (L.startsWith("%EQ:")) { flushParagraph(buf); children.push(new Paragraph({ children: inline(L.slice(4).trim(), { italics: false }), alignment: AlignmentType.CENTER, spacing: { before: 60, after: 160 } })); i++; continue; }
@@ -84,7 +89,7 @@ while (i < lines.length) {
   if (h) { flushParagraph(buf); const lvl = h[1].length; const text = h[2].trim();
     const hl = [HeadingLevel.HEADING_1, HeadingLevel.HEADING_2, HeadingLevel.HEADING_3, HeadingLevel.HEADING_4][lvl - 1];
     children.push(new Paragraph({ heading: hl, children: [new TextRun({ text, font: HEAD_FONT, bold: true, size: [32, 28, 24, 22][lvl - 1], color: "000000" })],
-      spacing: { before: lvl === 1 ? 360 : 240, after: 120 }, pageBreakBefore: lvl === 1 && cfg.h1PageBreak !== false && !/^(Abstract|Acknowledgements|Declaration)$/.test(text) ? true : false, keepNext: true })); i++; continue; }
+      spacing: { before: lvl === 1 ? 360 : 240, after: 120 }, pageBreakBefore: lvl === 1 && cfg.h1PageBreak !== false && !/^(Abstract|Executive summary|Acknowledgements|Declaration)$/.test(text) ? true : false, keepNext: true })); i++; continue; }
   const img = L.match(/^!\[(.*)\]\((.*)\)\s*$/);
   if (img) { flushParagraph(buf); figN++; const p = path.resolve(path.dirname(mdPath), img[2]); const data = fs.readFileSync(p);
     const dims = pngSize(data); const maxW = 6.3 * 96, maxH = 8.2 * 96; let w = dims.w, hh = dims.h; const sc = Math.min(maxW / w, maxH / hh, 1); w = Math.round(w * sc); hh = Math.round(hh * sc);

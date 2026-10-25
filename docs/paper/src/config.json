@@ -1,10 +1,10 @@
 {
- "title": "Planning at the Speed of Control: Fusing a JEPA World-Model Planner into One GPU Kernel",
- "subtitle": "An equal-hardware optimisation ladder for LeWorldModel on H100, from exact caching and iCEM to a ThunderKittens megakernel",
+ "title": "Planning at the Speed of Control",
+ "subtitle": "Profiling and fusing world-model robot planning into a single GPU kernel",
  "author": "Antoine Nguyen",
  "studentNumber": "24433599",
- "degree": "Research Paper",
- "school": "[Affiliation]",
+ "degree": "Project report",
+ "school": "[Faculty / School], University of Technology Sydney",
  "supervisor": "[Supervisor name]",
  "date": "October 2026"
 }
