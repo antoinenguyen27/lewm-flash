@@ -34,30 +34,30 @@ let n = 0;
   s.addText("Profiling and fusing world-model robot planning into a single GPU kernel", { x: M, y: 2.0, w: W - 2 * M, h: 0.8, fontFace: BF, fontSize: 18, color: "CADCFC", isTextBox: true, margin: 0 });
   s.addText([{ text: "Antoine Nguyen  ·  24433599", options: { breakLine: true, bold: true } }, { text: "Project presentation  ·  [Faculty / School], University of Technology Sydney", options: { breakLine: true } }, { text: "Supervisor: [supervisor name]  ·  October 2026", options: {} }],
     { x: M, y: 3.9, w: W - 2 * M, h: 1.0, fontFace: BF, fontSize: 13, color: WHITE, isTextBox: true, margin: 0, paraSpaceAfter: 4 });
-  s.addNotes("This project asks why a robot that plans with an AI world model is slow, finds the answer in data, and fixes it. The title is the outcome: planning fast enough for a control loop, with the same model and the same success."); }
+  s.addNotes("This study profiles the inference latency of a world-model planner, identifies its bottlenecks from measured data, and evaluates a fused GPU implementation that removes them without retraining the model."); }
 
 // 2 The project in one slide
-{ const s = pres.addSlide(); n++; title(s, "The project in one slide");
-  body(s, ["LeWM is a small AI world model that lets a robot plan by imagining thousands of possible futures. One plan still takes 622 ms on an H100 GPU.",
-           "Question: where does that time go, and how much can be removed without retraining the model or making the robot less successful?",
-           "Method: an analytics pipeline over 11,942 timed calls and 900 episode outcomes: profile, model the bottleneck, design, evaluate with paired statistics.",
-           "Answer: the time was overhead, not computation. One fused GPU program per plan takes 46.5 ms, with task success unchanged."],
+{ const s = pres.addSlide(); n++; title(s, "Overview");
+  body(s, ["LeWM is a 15M-parameter world model that plans by evaluating thousands of predicted action outcomes. One plan takes 622 ms on an H100 GPU.",
+           "Research question: where is the planning latency spent, and how much can be removed without retraining the model or reducing task success?",
+           "Method: compute profiling of 11,942 timed calls, a fitted latency-scaling model, solution design, and paired statistical evaluation on 900 episode outcomes.",
+           "Result: latency was dominated by execution overhead rather than computation. A single persistent GPU kernel per plan reduces latency to 46.5 ms with no detectable change in task success."],
     M, 1.15, 5.6, 3.9, { size: 14 });
   card(s, 6.5, 1.2, 1.5, 1.15, "622 ms", "reference planner\n(one robot, H100)", GREY, 24); card(s, 8.1, 1.2, 1.5, 1.15, "46.5 ms", "LeWM-MK,\none GPU launch", BLUE, 24);
   card(s, 6.5, 2.55, 1.5, 1.15, "13.4×", "faster than the\nreference", BLUE, 26); card(s, 8.1, 2.55, 1.5, 1.15, "−0.3 pts", "success vs reference,\n300 paired episodes", NAVY, 22);
   label(s, "Medians of end-to-end planning latency; 95% CI of the speed-up 13.0–13.5×", 6.5, 3.85, 3.2, GREY, 10);
-  s.addNotes("Four numbers to keep in mind: 622 milliseconds before, 46.5 after, thirteen times faster, and no change in how often the robot succeeds. The rest of the talk explains how the data led from the first number to the second."); footer(s, n); }
+  s.addNotes("Summary of the study: reference latency 622 ms, final latency 46.5 ms, a 13.4-fold reduction, and no detectable change in task success. The following slides present the profile, the design derived from it, and the evaluation."); footer(s, n); }
 
 // 3 Motivation
-{ const s = pres.addSlide(); n++; title(s, "Why it matters: robots plan against a clock");
-  body(s, ["A world model predicts what happens next; a robot plans by imagining many action sequences and executing the best.",
+{ const s = pres.addSlide(); n++; title(s, "Motivation");
+  body(s, ["A world model predicts future states; a planner evaluates many candidate action sequences with it and executes the best.",
            "A controller must finish each plan within its control period: 100 ms at 10 Hz, 50 ms at 20 Hz, for sensing, planning and acting together.",
            "LeWM made world-model planning cheap by shrinking the model to 15M parameters. Its released planner still takes 622 ms per plan.",
-           "The model is tiny: its arithmetic per plan should take milliseconds. Something else is using the time."],
+           "The arithmetic content of a plan corresponds to milliseconds of GPU time; the remaining latency is not attributable to computation."],
     M, 1.15, 5.4, 3.9, { size: 14 });
-  card(s, 6.3, 1.2, 1.55, 1.1, "15M", "parameters in\nthe whole model", NAVY); card(s, 8.0, 1.2, 1.55, 1.1, "9,000", "imagined futures\nper reference plan", NAVY);
+  card(s, 6.3, 1.2, 1.55, 1.1, "15M", "parameters in\nthe whole model", NAVY); card(s, 8.0, 1.2, 1.55, 1.1, "9,000", "rollouts per\nreference plan", NAVY);
   card(s, 6.3, 2.5, 1.55, 1.1, "900", "dependent layer\nevaluations per plan", NAVY); card(s, 8.0, 2.5, 1.55, 1.1, "16–53 s", "per plan for larger\nworld models", NAVY, 24);
-  s.addNotes("The motivation is control. Larger world models take tens of seconds per plan. LeWM brought that under a second by being small. But a robot needs tens of milliseconds, and a model this small should be able to deliver that."); footer(s, n); }
+  s.addNotes("Closed-loop control requires planning latency below the control period. Larger world models require tens of seconds per plan; LeWM requires 622 ms on an H100, although its arithmetic content corresponds to milliseconds."); footer(s, n); }
 
 // 4 Aim, objectives, analytics link
 { const s = pres.addSlide(); n++; title(s, "Aim and objectives");
@@ -71,77 +71,77 @@ let n = 0;
     s.addText(r[1], { x: 1.6, y, w: W - 1.6 - M, h: 0.65, fontFace: BF, fontSize: 13.5, color: INK, isTextBox: true, margin: 0, valign: "middle" }); });
   s.addText([{ text: "Data analytics and AI. ", options: { bold: true, color: NAVY } }, { text: "The object is an AI system (a self-supervised world model and its search algorithm); the method is an analytics pipeline over its measured behaviour: collection, preparation, pattern discovery with a fitted latency model, statistical evaluation and deployment.", options: {} }],
     { x: M, y: 4.6, w: W - 2 * M, h: 0.7, fontFace: BF, fontSize: 11.5, color: INK, isTextBox: true, margin: 0, valign: "top" });
-  s.addNotes("Four objectives, one per stage of the work. The project is an analytics project about an AI system: the data are timings and outcomes, the pattern discovery is a fitted model of where time goes, and the evaluation is statistical."); footer(s, n); }
+  s.addNotes("Four objectives, one per stage of the study. The object of study is an AI system; the method is an analytics pipeline over its measured behaviour: data collection and preparation, pattern discovery with a fitted latency model, and statistical evaluation."); footer(s, n); }
 
 // 5 Background
-{ const s = pres.addSlide(); n++; title(s, "Background: three lines of work, one gap");
+{ const s = pres.addSlide(); n++; title(s, "Background and research gap");
   panels(s, [["World models that plan", "JEPA models (I-JEPA, DINO-WM, V-JEPA 2, LeWM) predict in a learned representation and plan by search. Planning time is reported coarsely and only ever cut by changing the model."],
              ["Sampling-based search", "CEM samples, keeps the best, refits, repeats. iCEM shrinks the population and reuses the best: 2.7–22× fewer samples. But fewer samples need not mean less time (CEM-GD)."],
              ["Fast GPU inference", "Small models at batch 1 are bound by launch overhead and data movement. Remedies: CUDA Graphs, compilers, FlashAttention, and megakernels: one GPU program for a whole computation."]], 1.15, 2.85);
-  s.addText([{ text: "The gap. ", options: { bold: true, color: NAVY } }, { text: "No one has profiled where a world-model planner's time goes, measured whether sample-efficient search saves time in practice, or fused a whole planning loop, with a neural encoder, rollouts, scoring and elite selection, into one GPU program.", options: {} }],
+  s.addText([{ text: "Research gap. ", options: { bold: true, color: NAVY } }, { text: "No prior work has profiled where a world-model planner's latency is spent, measured whether sample-efficient search saves time in practice, or fused a whole planning loop, with a neural encoder, rollouts, scoring and elite selection, into one GPU program.", options: {} }],
     { x: M, y: 4.2, w: W - 2 * M, h: 1.0, fontFace: BF, fontSize: 12, color: INK, isTextBox: true, margin: 0, valign: "top" });
-  s.addNotes("Three lines of work meet here. World models, where speed has been treated as a property of the model. Sampling-based search, where iCEM cut samples but related work warns that samples are not time. And GPU inference, where the megakernel is the newest tool but has only been used for language models."); footer(s, n); }
+  s.addNotes("Three bodies of work are relevant: JEPA world models, in which planning latency has been reduced only by changing the model; sampling-based search, in which iCEM reduces sample counts but sample count does not determine latency; and GPU inference, in which megakernels have so far been applied only to language models."); footer(s, n); }
 
 // 6 Method
-{ const s = pres.addSlide(); n++; title(s, "Method: an analytics pipeline over the planner");
+{ const s = pres.addSlide(); n++; title(s, "Methodology");
   fitImage(s, "fig_pipeline.png", M, 1.05, W - 2 * M, 2.0);
   panels(s, [["Data", "11,942 timed policy calls (61 one-robot episodes × 3 systems + 4 probes), 900 episode outcomes, telemetry, component timings."],
              ["Analysis", "Warm-up removal and outlier flags; stage decomposition; a fitted model latency = a + b·N separating fixed overhead from work."],
              ["Evaluation", "Medians with bootstrap CIs; 300 paired episodes, McNemar and paired bootstrap; numerical error against FP32."]], 3.2, 1.95, PALE, 3.1, 2.9, 10.5);
-  s.addNotes("The pipeline. Collect timings and outcomes, prepare them into tidy tables, discover where the time goes, design against it, evaluate, deploy. Probes are configurations that differ in one respect, used only to isolate an effect. Every design change went back through profiling before it was kept."); footer(s, n); }
+  s.addNotes("Methodology. Timings and outcomes are collected, prepared into tidy tables and analysed to locate the latency; the design follows from the analysis and is evaluated with the same instruments. Probes are configurations that differ from a system in one respect and isolate a single effect. Each design change was re-profiled before adoption."); footer(s, n); }
 
 // 7 Profile
-{ const s = pres.addSlide(); n++; title(s, "Finding: where a plan's 622 ms goes");
+{ const s = pres.addSlide(); n++; title(s, "Compute profile of the reference planner");
   fitImage(s, "fig_profile.png", M, 1.05, 6.0, 2.5);
   body(s, ["33%: re-encoding the same two images 60 times per plan (telemetry: 60 encoder calls, 2 distinct images).",
            "59%: the search, 12.3 ms per iteration, 409 µs per layer for about 3 µs of arithmetic.",
-           "7%: waiting on the CPU between iterations.",
+           "7%: CPU synchronisation between iterations.",
            "Under 1%: the policy code around the planner."], 6.7, 1.15, 2.9, 3.9, { size: 11.5 });
   label(s, "Top bar: reference planner, by stage. Bottom bar: LeWM-MK (Section 6). Stages without a direct measurement attributed by difference.", M, 3.75, 6.0, GREY, 10);
-  s.addNotes("The profile. A third of the time recomputes something that never changes during a plan. Most of the rest is the search, but at about four hundred microseconds per layer evaluation for a few microseconds of arithmetic, it is not computing most of the time."); footer(s, n); }
+  s.addNotes("Compute profile. One third of the latency recomputes image embeddings that are constant within a plan. Most of the remainder is the search, at approximately 409 microseconds per layer evaluation against approximately 3 microseconds of arithmetic."); footer(s, n); }
 
 // 8 Pattern
-{ const s = pres.addSlide(); n++; title(s, "Pattern: the search is overhead, not work");
+{ const s = pres.addSlide(); n++; title(s, "Latency scaling analysis");
   fitImage(s, "fig_scaling.png", M, 1.05, 6.0, 2.6);
   card(s, 6.8, 1.15, 1.35, 1.15, "99%", "of an eager call\nis fixed cost", ORANGE, 26); card(s, 8.25, 1.15, 1.35, 1.15, "1.01×", "predicted iCEM\ngain, eager", ORANGE, 24);
-  body(s, ["Fitted model: 20.0 ms fixed + 0.10 ms per 100 candidates. Cost does not depend on how much work is done.",
-           "So cutting candidates (iCEM) cannot help here: predicted 1.01×, observed 0.92×.",
-           "Only an execution with little fixed cost turns fewer candidates into less time."], 6.8, 2.5, 2.8, 2.6, { size: 11 });
+  body(s, ["Fitted model: 20.0 ms fixed + 0.10 ms per 100 candidates. Latency is effectively independent of workload.",
+           "Reducing the candidate count (iCEM) therefore yields no gain: predicted 1.01×, observed 0.92×.",
+           "A gain requires an execution model with low fixed cost per call."], 6.8, 2.5, 2.8, 2.6, { size: 11 });
   label(s, "Latency of one scoring call vs number of candidates, with fitted lines a + b·N.", M, 3.75, 6.0, GREY, 10);
-  s.addNotes("The key pattern. A straight-line model fitted to latency against workload shows the eager planner's cost is almost entirely fixed: a few hundred kernel launches from Python per call. That also explains why the sample-efficient search algorithm looked useless: it reduces work that was not the cost."); footer(s, n); }
+  s.addNotes("Scaling analysis. A linear model of latency against workload shows that the eager planner's cost is almost entirely fixed, consistent with several hundred kernel launches from Python per call. This also explains the absence of a gain from iCEM under eager execution: it reduces work that is not the dominant cost."); footer(s, n); }
 
 // 9 Solution
-{ const s = pres.addSlide(); n++; title(s, "Solution: LeWM-MK, one GPU program per plan");
+{ const s = pres.addSlide(); n++; title(s, "Solution design: LeWM-MK");
   fitImage(s, "fig_megakernel.png", M, 1.05, 5.9, 3.9);
   body(s, ["Encode each image once; cache the goal for the episode.",
            "iCEM search: 2,820 instead of 9,000 imagined futures.",
            "Whole plan in one persistent kernel: sampling, rollouts, scoring, elite selection, encoder; the CPU waits once.",
            "Small model spread across a 16-processor cluster; partial results exchanged on chip; barrier 3.6 → 0.65 µs.",
            "Weights streamed ahead of use; BF16 inputs, FP32 accumulation."], 6.6, 1.15, 3.0, 4.0, { size: 11.5 });
-  s.addNotes("Each element answers one finding. Encoding once removes the third. iCEM cuts work once overhead is gone. The persistent kernel removes launches and CPU round trips. Spreading the model across a cluster and streaming weights keeps every step of the long chain as short as the hardware allows."); footer(s, n); }
+  s.addNotes("Each design element addresses one finding: single encoding removes the redundant third; iCEM reduces work once fixed overhead is removed; the persistent kernel removes launches and CPU round trips; cluster-level parallelism and weight streaming minimise the latency of each step of the dependent chain."); footer(s, n); }
 
 // 10 Latency results
-{ const s = pres.addSlide(); n++; title(s, "Evaluation: 622 ms to 46.5 ms on the same GPU");
+{ const s = pres.addSlide(); n++; title(s, "Results: planning latency");
   fitImage(s, "fig_latency.png", M, 1.1, 6.2, 2.2);
   card(s, 6.9, 1.15, 1.3, 1.1, "13.4×", "vs reference\n[13.0, 13.5]", BLUE, 24); card(s, 8.3, 1.15, 1.3, 1.1, "3.9×", "vs optimised\nPyTorch", BLUE, 24);
   body(s, ["90th percentile 47.0 ms; interquartile range 0.7 ms wide.",
            "Fits a 20 Hz control loop at the median.",
            "Search now 46 µs per layer (was 409); synchronisation about 7% of it."], 6.9, 2.45, 2.7, 2.6, { size: 11 });
   label(s, "End-to-end planning latency, log scale; points are plans, diamonds medians. Baseline already uses compile, CUDA Graphs and BF16.", M, 3.45, 6.2, GREY, 10);
-  s.addNotes("The headline. Thirteen times faster than the reference, and almost four times faster than a PyTorch implementation that already uses every standard trick. Just as important for a controller, it is predictable: the spread is under a millisecond."); footer(s, n); }
+  s.addNotes("Latency is reduced 13.4-fold relative to the reference and 3.9-fold relative to an optimised PyTorch implementation using compilation, CUDA Graphs and BF16. Latency variability is also reduced: the interquartile range is 0.7 ms."); footer(s, n); }
 
 // 11 Success and fidelity
-{ const s = pres.addSlide(); n++; title(s, "Evaluation: the robot succeeds just as often");
+{ const s = pres.addSlide(); n++; title(s, "Results: task success and numerical fidelity");
   fitImage(s, "fig_success.png", M, 1.1, 6.2, 1.9);
   body(s, ["261 / 261 / 260 successes of 300 for reference, optimised PyTorch and LeWM-MK.",
            "LeWM-MK vs reference: 19 won, 20 lost; −0.3 points [−4.3, +3.7]; McNemar p = 1.00.",
-           "Disagreements are search randomness: the optimised PyTorch planner disagrees on 36.",
+           "Discordant episodes reflect stochastic search; the optimised PyTorch planner is discordant on 36.",
            "Numerical error vs FP32: 0.06–0.32%, matching accepted BF16 (0.05–0.40%)."], 6.9, 1.15, 2.7, 4.0, { size: 11 });
   label(s, "Push-T success on the same 300 episodes, Wilson 95% intervals. 300 pairs detect differences of about 6 points.", M, 3.2, 6.2, GREY, 10);
-  s.addNotes("The guard rail. The robot succeeds as often as before, within what 300 paired episodes can resolve, about six points. The kernel's arithmetic error matches the half-precision arithmetic that was already accepted."); footer(s, n); }
+  s.addNotes("No detectable change in task success at the resolution of 300 paired episodes (approximately 6 percentage points at 80% power). Numerical error relative to FP32 is within the range of the accepted BF16 implementation."); footer(s, n); }
 
 // 12 Conclusions and limits
-{ const s = pres.addSlide(); n++; title(s, "Conclusions, and what I cannot claim");
+{ const s = pres.addSlide(); n++; title(s, "Conclusions and limitations");
   const ans = [["O1", "The reference's time was overhead: 33% redundant encoding, a search 99% fixed cost per call, 7% CPU waits."],
                ["O2", "LeWM-MK removes each bottleneck with the model and search budget unchanged."],
                ["O3", "46.5 ms per plan: 13.4× the reference, 3.9× optimised PyTorch; success unchanged (−0.3 pts)."],
@@ -150,34 +150,34 @@ let n = 0;
     s.addText(a[0], { x: M, y, w: 0.7, h: 0.55, fontFace: HF, fontSize: 14, bold: true, color: BLUE, isTextBox: true, margin: 0, valign: "top" });
     s.addText(a[1], { x: 1.25, y, w: 4.55, h: 0.78, fontFace: BF, fontSize: 11.5, color: INK, isTextBox: true, margin: 0, valign: "top" }); });
   s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 6.1, y: 1.15, w: 3.4, h: 3.9, fill: { color: LIGHT }, line: { color: LIGHT }, rectRadius: 0.08 });
-  s.addText("Limits", { x: 6.3, y: 1.27, w: 3.0, h: 0.4, fontFace: HF, fontSize: 15, bold: true, color: NAVY, isTextBox: true, margin: 0 });
-  body(s, ["300 pairs resolve about 6 points of success, no less.",
-           "Some profile stages attributed by difference.",
+  s.addText("Limitations", { x: 6.3, y: 1.27, w: 3.0, h: 0.4, fontFace: HF, fontSize: 15, bold: true, color: NAVY, isTextBox: true, margin: 0 });
+  body(s, ["300 paired episodes resolve differences of about 6 percentage points.",
+           "Some profile stages are attributed by difference.",
            "One model, one task, one GPU type; H100-only kernel.",
-           "Simulation; only the planning call optimised.",
-           "PyTorch timings vary up to 18% between passes; the kernel's about 2%."], 6.3, 1.72, 3.05, 3.3, { size: 11 });
-  s.addNotes("The objectives were met, and the limits are stated with them. The speed-up is large and stable; the claim about success is bounded by the sample size; the numbers are specific to this model and GPU even though the mechanism is general."); footer(s, n); }
+           "Simulation only; only the planning call was optimised.",
+           "PyTorch latency varied by up to 18% between passes; kernel latency by about 2%."], 6.3, 1.72, 3.05, 3.3, { size: 11 });
+  s.addNotes("All four objectives were met. The latency reduction is large and reproducible; the task-success result is bounded by sample size; the measured values are specific to this model and GPU, while the identified mechanism is general."); footer(s, n); }
 
 // 13 Future work
 { const s = pres.addSlide(); n++; title(s, "Future work");
-  const fw = [["Spend the saved time on better plans", "More iterations or candidates still fit a 100 ms period: map the latency-success trade-off."],
-              ["Shorten the remaining chain", "Combine with a one-pass rollout model, or one layer per cluster with candidates streaming through."],
-              ["Other models and hardware", "Larger world models, onboard robot computers; automatic megakernel compilers."],
-              ["Evaluate at deployment resolution", "About 2,500 paired episodes for 2 points, now minutes of planning; then a physical robot."]];
+  const fw = [["Search budget versus task success", "Larger iteration and candidate budgets remain within a 100 ms control period; characterise the latency-success trade-off."],
+              ["Reducing the dependent computation chain", "Combination with single-pass rollout models; layer-per-cluster pipelining."],
+              ["Generalisation to other models and hardware", "Larger world models, embedded robot computers, automatic megakernel compilation."],
+              ["Higher-resolution and physical evaluation", "Approximately 2,500 paired episodes to resolve 2 percentage points; evaluation on a physical robot."]];
   fw.forEach((f, i) => { const col = i % 2, row = Math.floor(i / 2); const x = M + col * 4.6, y = 1.2 + row * 1.6;
     s.addShape(pres.shapes.OVAL, { x, y: y + 0.05, w: 0.4, h: 0.4, fill: { color: BLUE }, line: { color: WHITE } });
     s.addText(String(i + 1), { x, y: y + 0.05, w: 0.4, h: 0.4, fontFace: HF, fontSize: 13, bold: true, color: WHITE, isTextBox: true, margin: 0, align: "center", valign: "middle" });
     s.addText([{ text: f[0], options: { bold: true, color: NAVY, breakLine: true } }, { text: f[1], options: { color: INK } }], { x: x + 0.55, y, w: 3.9, h: 1.3, fontFace: BF, fontSize: 12.5, isTextBox: true, margin: 0, valign: "top", paraSpaceAfter: 2 }); });
-  s.addNotes("Four directions. The first is the immediate payoff: a fast planner can afford a bigger search. The others push latency further, test generality, and take the result to a real robot."); footer(s, n); }
+  s.addNotes("Four directions: the latency-success trade-off of the search budget, further latency reduction, generalisation to other models and hardware, and higher-resolution and physical evaluation."); footer(s, n); }
 
-// 14 Close (dark)
+// 14 Summary (dark)
 { const s = pres.addSlide(); s.background = { color: NAVY }; n++;
-  s.addText("Take-home", { x: M, y: 0.6, w: W - 2 * M, h: 0.7, fontFace: HF, fontSize: 28, bold: true, color: WHITE, isTextBox: true, margin: 0 });
-  s.addText([{ text: "Profile before optimising: the world-model planner's time was overhead, not arithmetic.", options: { bullet: { indent: 16 }, breakLine: true, paraSpaceAfter: 12 } },
-             { text: "A one-line fitted model of latency against workload told which fix would pay, and why the smarter search had looked useless.", options: { bullet: { indent: 16 }, breakLine: true, paraSpaceAfter: 12 } },
-             { text: "One GPU program per plan: 622 ms to 46.5 ms on the same H100, same model, same task success.", options: { bullet: { indent: 16 } } }],
+  s.addText("Summary", { x: M, y: 0.6, w: W - 2 * M, h: 0.7, fontFace: HF, fontSize: 28, bold: true, color: WHITE, isTextBox: true, margin: 0 });
+  s.addText([{ text: "The reference planner's latency was dominated by execution overhead, not arithmetic.", options: { bullet: { indent: 16 }, breakLine: true, paraSpaceAfter: 12 } },
+             { text: "A linear latency-scaling model identified the bottleneck regime and predicted when iCEM reduces latency.", options: { bullet: { indent: 16 }, breakLine: true, paraSpaceAfter: 12 } },
+             { text: "A single persistent GPU kernel per plan reduces latency from 622 ms to 46.5 ms on the same H100, with the same model and no detectable change in task success.", options: { bullet: { indent: 16 } } }],
     { x: M, y: 1.5, w: W - 2 * M, h: 3.0, fontFace: BF, fontSize: 17, color: WHITE, isTextBox: true, margin: 0, valign: "top" });
   s.addText("Report, datasets and solution program: docs/paper and solution_pack/ in the project repository.", { x: M, y: 4.7, w: W - 2 * M, h: 0.5, fontFace: BF, fontSize: 12, color: "CADCFC", isTextBox: true, margin: 0 });
-  s.addNotes("Three sentences to end on, then questions."); }
+  s.addNotes("Summary of findings."); }
 
 pres.writeFile({ fileName: path.join(__dirname, "..", "..", "presentation.pptx") }).then(f => console.log("wrote", f, n, "slides"));
