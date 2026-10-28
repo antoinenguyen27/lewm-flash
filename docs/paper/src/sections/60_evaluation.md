@@ -11,9 +11,9 @@ Table 8 and Figure 5 compare the three systems on the same H100. LeWM-MK compute
 | optimised PyTorch planner | 72 | 182.1 [177.3, 185.7] | 204.3 | 175.3 – 195.4 | 1.51 | 3.9× [3.8, 4.0] |
 | **LeWM-MK** | 76 | **46.5 [46.4, 46.6]** | **47.0** | **46.1 – 46.8** | **0.82** | — |
 
-![End-to-end planning latency of the three systems, log scale. Small points are individual plans; diamonds are medians.](figs/fig_latency.png)
+![End-to-end planning latency of the three systems, log scale. Boxes span the interquartile range with the median as a vertical line; whiskers extend to the most extreme plan within 1.5 interquartile ranges; points beyond them are plotted individually.](figs/fig_latency.png)
 
-For a controller, predictability matters as much as speed. The reference planner's plans spread over 200 ms and the optimised PyTorch planner's over 150 ms, with two distinct clusters. LeWM-MK's interquartile range is 0.7 ms wide, and its 90th percentile is within 0.6 ms of its median. One of its 76 plans took 458 ms, a one-off in a single process that the data do not explain; it is reported and kept. At the median, a LeWM-MK plan fits inside the 50 ms period of a 20 Hz control loop, and comfortably inside the 100 ms of a 10 Hz loop. The calls that only execute a planned action also became cheaper (0.82 ms), because the fused pipeline no longer runs the CPU image transform on every call.
+For a controller, predictability matters as much as speed. The reference planner's plans spread over 200 ms and the optimised PyTorch planner's over 150 ms, including a separate group of plans near 115 ms that appear as outliers in Figure 5. LeWM-MK's interquartile range is 0.7 ms wide, and its 90th percentile is within 0.6 ms of its median. One of its 76 plans took 458 ms, a one-off in a single process that the data do not explain; it is reported and kept. At the median, a LeWM-MK plan fits inside the 50 ms period of a 20 Hz control loop, and comfortably inside the 100 ms of a 10 Hz loop. The calls that only execute a planned action also became cheaper (0.82 ms), because the fused pipeline no longer runs the CPU image transform on every call.
 
 ## 6.2 The new compute profile
 

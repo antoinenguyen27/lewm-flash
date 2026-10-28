@@ -127,7 +127,7 @@ let n = 0;
   body(s, ["90th percentile 47.0 ms; interquartile range 0.7 ms wide.",
            "Fits a 20 Hz control loop at the median.",
            "Search now 46 µs per layer (was 409); synchronisation about 7% of it."], 6.9, 2.45, 2.7, 2.6, { size: 11 });
-  label(s, "End-to-end planning latency, log scale; points are plans, diamonds medians. Baseline already uses compile, CUDA Graphs and BF16.", M, 3.45, 6.2, GREY, 10);
+  label(s, "End-to-end planning latency, log scale: median, interquartile box, 1.5-IQR whiskers, outlying plans. Baseline uses compile, CUDA Graphs and BF16.", M, 3.45, 6.2, GREY, 10);
   s.addNotes("Latency is reduced 13.4-fold relative to the reference and 3.9-fold relative to an optimised PyTorch implementation using compilation, CUDA Graphs and BF16. Latency variability is also reduced: the interquartile range is 0.7 ms."); footer(s, n); }
 
 // 11 Success and fidelity

@@ -410,16 +410,22 @@ def figures(res, plans, succ):
     ax.grid(axis="y", color=GRID, lw=0.6, which="both"); ax.legend(frameon=False, fontsize=7, loc="center right", bbox_to_anchor=(1.0, 0.6))
     fig.savefig(F / "fig_scaling.png"); plt.close(fig)
 
-    # latency distributions of the three systems
+    # latency distributions of the three systems: box plots (median, interquartile box, 1.5-IQR whiskers, outliers)
     fig, ax = plt.subplots(figsize=(W, 1.9))
     order = ["reference", "pytorch_optimised", "megakernel"]
+    mpl = tuple(int(x) for x in matplotlib.__version__.split(".")[:2])
+    horiz = {"orientation": "horizontal"} if mpl >= (3, 10) else {"vert": False}  # works across matplotlib versions
     for y, c in zip([2, 1, 0], order):
-        v = np.array(plans[c]); j = (np.random.default_rng(1).random(v.size) - 0.5) * 0.35
-        ax.scatter(v, y + j, s=5, color=COLORS[c], alpha=0.5, lw=0)
-        ax.plot([np.median(v)], [y], "D", color=COLORS[c], ms=7, mec="white", mew=0.8)
-        ax.text(1150, y, f"{np.median(v):.1f} ms", va="center", ha="right", fontsize=8)
-    ax.set_xscale("log"); ax.set_xlim(30, 1200); ax.set_xticks([30, 50, 100, 200, 500, 1000]); ax.set_xticklabels(["30", "50", "100", "200", "500", "1,000"])
-    ax.set_yticks([2, 1, 0]); ax.set_yticklabels([LABELS[c] for c in order]); ax.set_xlabel("end-to-end plan latency (ms, log scale)")
+        v = np.array(plans[c])
+        ax.boxplot(v, positions=[y], **horiz, widths=0.5, patch_artist=True, manage_ticks=False,
+                   boxprops=dict(facecolor=COLORS[c], edgecolor=COLORS[c], alpha=0.35), medianprops=dict(color=COLORS[c], lw=2),
+                   whiskerprops=dict(color=COLORS[c]), capprops=dict(color=COLORS[c]),
+                   flierprops=dict(marker="o", ms=3, mfc=COLORS[c], mec="none", alpha=0.7))
+        ax.text(1.02, (y + 0.6) / 3.2, f"median {np.median(v):.1f} ms", transform=ax.transAxes, va="center", ha="left", fontsize=8)
+    ax.set_xscale("log"); ax.set_xlim(30, 1000); ax.set_xticks([30, 50, 100, 200, 500, 1000]); ax.set_xticklabels(["30", "50", "100", "200", "500", "1,000"])
+    from matplotlib.ticker import NullFormatter
+    ax.xaxis.set_minor_formatter(NullFormatter())
+    ax.set_ylim(-0.6, 2.6); ax.set_yticks([2, 1, 0]); ax.set_yticklabels([LABELS[c] for c in order]); ax.set_xlabel("end-to-end plan latency (ms, log scale)")
     ax.grid(axis="x", color=GRID, lw=0.6, which="both")
     fig.savefig(F / "fig_latency.png"); plt.close(fig)
 
