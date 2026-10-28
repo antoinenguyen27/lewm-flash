@@ -1,0 +1,17 @@
+_target_: megakernel.solver.MegakernelICEMSolver
+model: ???
+batch_size: 1
+num_samples: 300
+var_scale: 1.0
+n_steps: 30
+topk: 30
+device: "cuda"
+seed: ${seed}
+elite_retention: 0
+colored_noise: none
+colored_noise_time: raw
+momentum_alpha: 0.0
+sample_decay: 1.0
+sample_count_bucket_size: 0
+return_best_elite: false
+clip_actions: false
