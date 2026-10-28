@@ -73,14 +73,52 @@ let n = 0;
     { x: M, y: 4.6, w: W - 2 * M, h: 0.7, fontFace: BF, fontSize: 11.5, color: INK, isTextBox: true, margin: 0, valign: "top" });
   s.addNotes("Four objectives, one per stage of the study. The object of study is an AI system; the method is an analytics pipeline over its measured behaviour: data collection and preparation, pattern discovery with a fitted latency model, and statistical evaluation."); footer(s, n); }
 
-// 5 Background
-{ const s = pres.addSlide(); n++; title(s, "Background and research gap");
-  panels(s, [["World models that plan", "JEPA models (I-JEPA, DINO-WM, V-JEPA 2, LeWM) predict in a learned representation and plan by search. Planning time is reported coarsely and only ever cut by changing the model."],
-             ["Sampling-based search", "CEM samples, keeps the best, refits, repeats. iCEM shrinks the population and reuses the best: 2.7–22× fewer samples. But fewer samples need not mean less time (CEM-GD)."],
-             ["Fast GPU inference", "Small models at batch 1 are bound by launch overhead and data movement. Remedies: CUDA Graphs, compilers, FlashAttention, and megakernels: one GPU program for a whole computation."]], 1.15, 2.85);
-  s.addText([{ text: "Research gap. ", options: { bold: true, color: NAVY } }, { text: "No prior work has profiled where a world-model planner's latency is spent, measured whether sample-efficient search saves time in practice, or fused a whole planning loop, with a neural encoder, rollouts, scoring and elite selection, into one GPU program.", options: {} }],
-    { x: M, y: 4.2, w: W - 2 * M, h: 1.0, fontFace: BF, fontSize: 12, color: INK, isTextBox: true, margin: 0, valign: "top" });
-  s.addNotes("Three bodies of work are relevant: JEPA world models, in which planning latency has been reduced only by changing the model; sampling-based search, in which iCEM reduces sample counts but sample count does not determine latency; and GPU inference, in which megakernels have so far been applied only to language models."); footer(s, n); }
+// 5-9 Background, one slide per line of work, then the research gap
+function figSlide(t, img, caption, bullets, notes) {
+  const s = pres.addSlide(); n++; title(s, t);
+  s.addShape(pres.shapes.RECTANGLE, { x: M, y: 1.1, w: 5.6, h: 3.3, fill: { color: "000000" }, line: { color: "000000" } });
+  fitImage(s, img, M, 1.1, 5.6, 3.3);
+  label(s, caption, M, 4.48, 5.6, GREY, 9.5);
+  body(s, bullets, 6.4, 1.15, 3.2, 4.0, { size: 12 });
+  s.addNotes(notes); footer(s, n); return s;
+}
+figSlide("Background: JEPA world models", "ext_vjepa2_ac.png",
+  "Joint-embedding predictive architecture (V-JEPA 2-AC): the predictor is trained to predict the next frame's embedding from past frames and actions. Image source: [add attribution].",
+  ["A JEPA learns an encoder and a predictor; prediction error is measured in embedding space, not in pixels.",
+   "Conditioning the predictor on actions yields a world model that can be used for planning.",
+   "Lineage: I-JEPA, V-JEPA, DINO-WM, PLDM, V-JEPA 2-AC, LeWM.",
+   "Reported planning latency: 53 s per call (DINO-WM), 16 s per action (V-JEPA 2-AC)."],
+  "JEPA world models predict in a learned embedding space. With action conditioning, the predictor becomes a dynamics model, and a goal image defines a target in the same space. Planning latency in this literature has been reduced by changing the model, never by examining execution.");
+figSlide("Background: planning with LeWM", "ext_lewm_rollout.png",
+  "Latent rollout: the encoder maps the start frame to an embedding; the predictor advances it one action at a time. The decoder is shown for visualisation only. Image source: [add attribution].",
+  ["LeWM: 15M parameters; ViT-tiny encoder; one 192-dimensional embedding per image.",
+   "The predictor (6-layer transformer, AdaLN action conditioning) rolls a candidate forward 5 steps.",
+   "Cost: distance between the final predicted embedding and the goal embedding.",
+   "No decoding during planning; the search operates entirely in embedding space."],
+  "LeWM plans by rolling candidate action sequences through its predictor in embedding space and scoring the final embedding against the goal. Each plan requires 30 iterations of this rollout for every candidate, which is the computation profiled in this study.");
+figSlide("Background: CEM and iCEM planning", "ext_cem_samples.png",
+  "Cross-entropy method: many candidate action trajectories are sampled from a Gaussian (magenta); the distribution is refitted to the best and resampled. Orange: the selected plan. Image source: [add attribution].",
+  ["CEM: sample candidates, score them, keep the top elites, refit the Gaussian, repeat.",
+   "LeWM reference: 300 candidates × 30 iterations = 9,000 rollouts per plan.",
+   "iCEM: shrinking population and elite reuse; 2.7–22× fewer samples (Pinneri et al., 2021).",
+   "Fewer samples reduce latency only if per-iteration cost scales with sample count (Huang et al., 2021)."],
+  "The cross-entropy method is the planner used by LeWM and most JEPA world models. iCEM reduces the number of samples, but related work shows that sample count does not determine latency unless the per-iteration cost scales with it, which this study tests directly.");
+{ const s = pres.addSlide(); n++; title(s, "Background: GPU inference at small batch");
+  panels(s, [["Launch-bound execution", "Each operation is a GPU kernel launched by the CPU. At batch 1, kernels finish in microseconds and launch overhead, Python dispatch and CPU synchronisation dominate."],
+             ["Standard remedies", "CUDA Graphs reduce launch cost; torch.compile fuses operators; FlashAttention fuses attention on chip. The optimiser loop remains on the CPU."],
+             ["Megakernels", "One persistent GPU program for an entire computation: no launches, no gaps. Demonstrated for language-model inference (Hazy Research, FlashFormer, MPK)."]], 1.15, 2.3, LIGHT, 3.1, 2.9, 12);
+  s.addText("Hopper (H100) features used here: tensor-core WGMMA instructions, bulk asynchronous copies, thread-block clusters with distributed shared memory (ThunderKittens).", { x: M, y: 3.7, w: W - 2 * M, h: 0.6, fontFace: BF, fontSize: 11.5, color: GREY, italic: true, isTextBox: true, margin: 0 });
+  s.addNotes("Small models at batch size one are limited by the fixed cost of each kernel launch and CPU interaction rather than by arithmetic or memory bandwidth. Standard remedies reduce these costs per operation; megakernels remove them, but have so far been applied only to language-model inference."); footer(s, n); }
+{ const s = pres.addSlide(); n++; title(s, "Research gap");
+  const gaps = [["1", "No prior work has profiled where a world-model planner's latency is spent during execution."],
+                ["2", "No prior work has measured whether sample-efficient search (iCEM) reduces latency in practice, or under which execution model."],
+                ["3", "No prior work has fused a complete planning loop (neural encoder, transformer rollouts, scoring, elite selection, distribution updates) into one GPU program."]];
+  gaps.forEach((g, i) => { const y = 1.25 + i * 1.05;
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: M, y, w: 0.7, h: 0.7, fill: { color: NAVY }, line: { color: NAVY }, rectRadius: 0.08 });
+    s.addText(g[0], { x: M, y, w: 0.7, h: 0.7, fontFace: HF, fontSize: 18, bold: true, color: WHITE, isTextBox: true, margin: 0, align: "center", valign: "middle" });
+    s.addText(g[1], { x: 1.45, y, w: W - 1.45 - M, h: 0.7, fontFace: BF, fontSize: 14, color: INK, isTextBox: true, margin: 0, valign: "middle" }); });
+  s.addText("Fast GPU planning exists in robotics with hand-written dynamics (MPPI, STORM, cuRobo, MPPI-Generic), not with learned world models.", { x: M, y: 4.5, w: W - 2 * M, h: 0.5, fontFace: BF, fontSize: 11.5, color: GREY, italic: true, isTextBox: true, margin: 0 });
+  s.addNotes("This study addresses all three gaps for LeWM: it profiles execution, tests iCEM under two execution models, and fuses the complete planning loop into one persistent GPU kernel."); footer(s, n); }
 
 // 6 Method
 { const s = pres.addSlide(); n++; title(s, "Methodology");
