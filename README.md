@@ -51,6 +51,25 @@ Several plausible paths were rejected and are recorded:
 - first iCEM-GD/CEM-GD path,
 - static eager BF16.
 
+## LeWM-MK: Megakernel Track (H100)
+
+`megakernel/` runs a whole LeWM plan as one persistent ThunderKittens H100 kernel launch: the ViT encoder, the
+action encoder, AdaLN, the 5-step predictor rollout, and all 30 iCEM steps. It replaces LeWM-Flash's compile, TF32
+and BF16 autocast.
+
+On one H100, for one robot (batch-1 end-to-end plan latency), against the reference LeWM implementation:
+
+| | Plan p50 | vs reference | Push-T success |
+|---|---:|---:|---:|
+| Reference LeWM (stock CEM, eager FP32) | 622 ms | 1x | 261/300 |
+| + embedding caching (exact) | 377 ms | 1.65x | 263/300 |
+| + iCEM | 410 ms | 1.5x | 265/300 |
+| LeWM-Flash (+ compile / TF32 / BF16) | 182 ms | 3.4x | 261/300 |
+| + megakernel (predictor + iCEM loop) | 59 ms | 10.5x | 262/300 |
+| **+ fused encoder: one launch per plan** | **46.5 ms** | **13.4x** | 260/300 |
+
+See [docs/ladder.md](docs/ladder.md) for the ladder and [docs/megakernel.md](docs/megakernel.md) for the kernel.
+
 ## Repository Layout
 
 ```text

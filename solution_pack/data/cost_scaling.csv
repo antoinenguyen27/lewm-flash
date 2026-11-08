@@ -1,0 +1,16 @@
+execution,candidates,p50_ms,n
+megakernel,60,1.378,30
+megakernel,120,1.4267,30
+megakernel,180,1.6299,30
+megakernel,240,1.6705,30
+megakernel,300,2.3428,30
+pytorch_compiled_bf16,60,2.5313,50
+pytorch_compiled_bf16,120,3.125,50
+pytorch_compiled_bf16,180,3.6722,50
+pytorch_compiled_bf16,240,4.2821,50
+pytorch_compiled_bf16,300,4.8646,50
+pytorch_eager_fp32,60,19.8743,50
+pytorch_eager_fp32,120,20.0986,50
+pytorch_eager_fp32,180,20.3719,50
+pytorch_eager_fp32,240,20.1656,50
+pytorch_eager_fp32,300,20.126,50

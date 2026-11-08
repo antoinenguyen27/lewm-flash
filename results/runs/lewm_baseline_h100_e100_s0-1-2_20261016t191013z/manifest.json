@@ -1,0 +1,369 @@
+{
+  "artifacts": {
+    "metrics_jsonl": "/results/runs/lewm_baseline_h100_e100_s0-1-2_20261016t191013z/metrics.jsonl",
+    "profiler_summary": null,
+    "profiler_trace": null,
+    "stderr": "/results/runs/lewm_baseline_h100_e100_s0-1-2_20261016t191013z/stderr.txt",
+    "stdout": "/results/runs/lewm_baseline_h100_e100_s0-1-2_20261016t191013z/stdout.txt"
+  },
+  "base_git_commit": "unknown",
+  "baseline_run_id": null,
+  "code_paths": [],
+  "command": [
+    "tools/benchmarks/lewm_plan_benchmark.py",
+    "--episodes",
+    "100",
+    "--run-id",
+    "lewm_baseline_h100_e100_s0-1-2_20261016t191013z",
+    "--weights-root",
+    "/weights",
+    "--results-root",
+    "/results",
+    "--seeds",
+    "0,1,2",
+    "--variant",
+    "baseline",
+    "--solver",
+    "cem",
+    "--profile",
+    "cuda-events",
+    "--cem-telemetry",
+    "cuda-events"
+  ],
+  "created_at_utc": "2026-10-16T19:18:07Z",
+  "dataset_sha256": "b6ebd9ac94bbe9e383f6e7a9cd92d74e9aa665ea57b758ed3717b0ee7df8d4fb",
+  "environment": {
+    "cuda": "12.8",
+    "cuda_available": true,
+    "gpu_name": "NVIDIA H100 80GB HBM3",
+    "packages": {
+      "datasets": "2.19.2",
+      "hydra_core": "1.3.7",
+      "modal": null,
+      "omegaconf": "2.3.1",
+      "pyarrow": "20.0.0",
+      "stable_pretraining": "0.1.7",
+      "stable_worldmodel": "0.1.1",
+      "torchvision": "0.26.0+cu128",
+      "transformers": "4.57.6"
+    },
+    "platform": "Linux-4.19.0-gvisor-x86_64-with-glibc2.35",
+    "python": "3.11.5",
+    "resources": {
+      "benchmark_resource_env": {
+        "JEPA_MODAL_CPU_LIMIT": "8.0",
+        "JEPA_MODAL_CPU_REQUEST": "8.0",
+        "JEPA_MODAL_GPU_TYPE": "H100"
+      },
+      "cgroup_cpu": {
+        "period_us": 1000000,
+        "quota_cores": 24.0,
+        "quota_us": 24000000,
+        "source": "cgroup_v1"
+      },
+      "cpu_count": 24,
+      "cuda_current_device": 0,
+      "cuda_device_count": 1,
+      "cuda_device_name": "NVIDIA H100 80GB HBM3",
+      "cuda_device_uuid": "<torch._C._CUuuid object at 0x2b4851232370>",
+      "sched_affinity_count": 24,
+      "thread_env": {
+        "MKL_NUM_THREADS": "8",
+        "OMP_NUM_THREADS": "8",
+        "OPENBLAS_NUM_THREADS": "8"
+      },
+      "torch_num_interop_threads": 12,
+      "torch_num_threads": 8
+    },
+    "torch": "2.11.0+cu128"
+  },
+  "git_diff_sha256": "0bef7352960b245fce7f2634454b55f9227d5508382de917caeb3a05bd596949",
+  "metrics_summary": {
+    "cem_calls": {
+      "active_env_count": {
+        "count": 0
+      },
+      "call_count": 3,
+      "cpu_materialization_count_estimate": {
+        "count": 0
+      },
+      "cpu_wall_ms": {
+        "count": 3,
+        "max": 16956.27330100001,
+        "mean": 14488.504274333327,
+        "min": 12441.784143000006,
+        "p50": 14067.455378999966,
+        "p90": 16378.509716600001,
+        "p99": 16898.49694256001
+      },
+      "cuda_elapsed_ms": {
+        "count": 3,
+        "max": 16955.9609375,
+        "mean": 14488.212239583334,
+        "min": 12441.466796875,
+        "p50": 14067.208984375,
+        "p90": 16378.210546875001,
+        "p99": 16898.1858984375
+      },
+      "final_cpu_materialization_count_estimate": {
+        "count": 3,
+        "max": 3.0,
+        "mean": 3.0,
+        "min": 3.0,
+        "p50": 3.0,
+        "p90": 3.0,
+        "p99": 3.0
+      },
+      "gd_accept_rate": {
+        "count": 0
+      },
+      "gd_action_saturation_rate": {
+        "count": 0
+      },
+      "gd_backward_time_ms_mean": {
+        "count": 0
+      },
+      "gd_cost_delta_mean": {
+        "count": 0
+      },
+      "gd_forward_time_ms_mean": {
+        "count": 0
+      },
+      "gd_grad_norm_max": {
+        "count": 0
+      },
+      "gd_grad_norm_mean": {
+        "count": 0
+      },
+      "gd_model_cost_env_candidate_evals": {
+        "count": 0
+      },
+      "gd_model_cost_evals": {
+        "count": 0
+      },
+      "gd_nan_or_inf_count": {
+        "count": 0
+      },
+      "input_total_envs": {
+        "count": 3,
+        "max": 27.0,
+        "mean": 23.0,
+        "min": 21.0,
+        "p50": 21.0,
+        "p90": 25.8,
+        "p99": 26.880000000000003
+      },
+      "loop_cpu_materialization_count_estimate": {
+        "count": 3,
+        "max": 810.0,
+        "mean": 690.0,
+        "min": 630.0,
+        "p50": 630.0,
+        "p90": 774.0,
+        "p99": 806.4
+      },
+      "memory": {
+        "cuda_memory_allocated_after_mb": {
+          "count": 3,
+          "max": 244.51806640625,
+          "mean": 174.7431640625,
+          "min": 104.92333984375,
+          "p50": 174.7880859375,
+          "p90": 230.5720703125,
+          "p99": 243.123466796875
+        },
+        "cuda_memory_allocated_before_mb": {
+          "count": 3,
+          "max": 241.10009765625,
+          "mean": 171.90006510416666,
+          "min": 102.36669921875,
+          "p50": 172.2333984375,
+          "p90": 227.3267578125,
+          "p99": 239.722763671875
+        },
+        "cuda_memory_peak_allocated_mb": {
+          "count": 3,
+          "max": 269.04833984375,
+          "mean": 199.66666666666666,
+          "min": 130.05224609375,
+          "p50": 199.8994140625,
+          "p90": 255.21855468750002,
+          "p99": 267.665361328125
+        },
+        "cuda_memory_reserved_after_mb": {
+          "count": 3,
+          "max": 280.0,
+          "mean": 222.0,
+          "min": 158.0,
+          "p50": 228.0,
+          "p90": 269.59999999999997,
+          "p99": 278.96
+        }
+      },
+      "model_cost_env_candidate_evals": {
+        "count": 3,
+        "max": 243000.0,
+        "mean": 207000.0,
+        "min": 189000.0,
+        "p50": 189000.0,
+        "p90": 232200.0,
+        "p99": 241920.0
+      },
+      "model_cost_env_candidate_evals_including_gd": {
+        "count": 0
+      },
+      "model_cost_evals": {
+        "count": 3,
+        "max": 9000.0,
+        "mean": 9000.0,
+        "min": 9000.0,
+        "p50": 9000.0,
+        "p90": 9000.0,
+        "p99": 9000.0
+      },
+      "model_cost_evals_including_gd": {
+        "count": 0
+      },
+      "output_cost_count": {
+        "count": 3,
+        "max": 27.0,
+        "mean": 23.0,
+        "min": 21.0,
+        "p50": 21.0,
+        "p90": 25.8,
+        "p99": 26.880000000000003
+      },
+      "region_count": {
+        "cem.cpu_logging": 2070,
+        "cem.cpu_outputs": 3,
+        "cem.elite_stats": 2070,
+        "cem.expand_info": 69,
+        "cem.init_action": 3,
+        "cem.init_distribution": 3,
+        "cem.model_get_cost": 2070,
+        "cem.reset_callbacks": 3,
+        "cem.sample_candidates": 2070,
+        "cem.start_batch_callbacks": 69,
+        "cem.topk": 2070,
+        "cem.write_back": 69
+      },
+      "region_cpu_ms_total": {
+        "cem.cpu_logging": 509.8936179983582,
+        "cem.cpu_outputs": 0.2032369999938055,
+        "cem.elite_stats": 225.44193499980736,
+        "cem.expand_info": 46.843347000177005,
+        "cem.init_action": 0.49858699998139855,
+        "cem.init_distribution": 0.5098680000088507,
+        "cem.model_get_cost": 42289.07000199888,
+        "cem.reset_callbacks": 0.027386999974510218,
+        "cem.sample_candidates": 153.8591630002344,
+        "cem.start_batch_callbacks": 0.9612620002030781,
+        "cem.topk": 91.23779099913065,
+        "cem.write_back": 2.1398749999264055
+      },
+      "warmup_excluded": true
+    },
+    "evaluations": {
+      "cem_calls_total": 6,
+      "encode_counts_total": {
+        "goal": 11070,
+        "initial": 11070,
+        "total": 22140,
+        "unknown": 0
+      },
+      "evaluation_time_s": {
+        "count": 3,
+        "max": 132.388148471,
+        "mean": 126.33859950366667,
+        "min": 118.23297754000001,
+        "p50": 128.3946725,
+        "p90": 131.5894532768,
+        "p99": 132.30827895158
+      },
+      "model_cost_env_candidate_evals_total": 3321000,
+      "model_cost_env_candidate_evals_total_including_gd": 3321000,
+      "model_cost_evals_total": 54000,
+      "model_cost_evals_total_including_gd": 54000,
+      "plan_calls_total": 150,
+      "success_rate": {
+        "count": 3,
+        "max": 0.89,
+        "mean": 0.87,
+        "min": 0.84
+      }
+    },
+    "plan_latency_ms": {
+      "count": 144,
+      "max": 17103.572265625,
+      "mean": 406.5898474852244,
+      "min": 51.767295837402344,
+      "p50": 108.2844467163086,
+      "p90": 138.54059143066405,
+      "p99": 13450.443271484364,
+      "warmup_excluded": true
+    }
+  },
+  "modal": {
+    "cpu_limit": "8.0",
+    "cpu_request": "8.0",
+    "enabled": true,
+    "gpu": "H100",
+    "image_label": null,
+    "results_volume": "jepa-results",
+    "weights_volume": "jepa-weights"
+  },
+  "model": "lewm-pusht",
+  "num_eval_episodes": 100,
+  "planner": {
+    "action_block": 5,
+    "cem_steps": 30,
+    "cem_telemetry": "cuda-events",
+    "clip_actions": null,
+    "colored_noise": null,
+    "colored_noise_time": null,
+    "compile_cost": false,
+    "compile_diagnostics": "none",
+    "compile_warmup_history": 1,
+    "compile_warmup_sample_counts": null,
+    "elite_retention": null,
+    "gd_compile_cost": null,
+    "gd_lr": null,
+    "gd_refine_topk": null,
+    "gd_seed_solver": null,
+    "gd_seed_source": null,
+    "gd_steps": null,
+    "horizon": 5,
+    "icem_step_telemetry": "none",
+    "matmul_precision": "default",
+    "max_compile_signature_records": 8,
+    "model_cost_autocast": "none",
+    "model_cost_evals_per_cem_call": 9000,
+    "momentum_alpha": null,
+    "mppi_temperature": null,
+    "profile": "cuda-events",
+    "receding_horizon": 5,
+    "return_best_elite": null,
+    "sample_count_bucket_size": null,
+    "sample_decay": null,
+    "samples": 300,
+    "solver_warm_start": null,
+    "static_chain_compile": null,
+    "static_chain_fullgraph": null,
+    "static_chain_mode": null,
+    "static_chain_warmup": null,
+    "topk": 30,
+    "torch_compile_logs": null,
+    "torch_profiler_with_stack": false,
+    "warm_start": null
+  },
+  "quality_gate_result": null,
+  "run_id": "lewm_baseline_h100_e100_s0-1-2_20261016t191013z",
+  "seed_list": [
+    0,
+    1,
+    2
+  ],
+  "semantic_class": "baseline",
+  "variant": "baseline",
+  "weights_sha256": "790f58203fba970444c9c437aab2b09ce1c19e1749c90e480161e056b4f1f24f"
+}

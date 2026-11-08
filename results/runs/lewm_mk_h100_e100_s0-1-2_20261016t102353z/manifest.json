@@ -1,0 +1,292 @@
+{
+  "artifacts": {
+    "metrics_jsonl": "/results/runs/lewm_mk_h100_e100_s0-1-2_20261016t102353z/metrics.jsonl",
+    "profiler_summary": null,
+    "profiler_trace": null,
+    "stderr": "/results/runs/lewm_mk_h100_e100_s0-1-2_20261016t102353z/stderr.txt",
+    "stdout": "/results/runs/lewm_mk_h100_e100_s0-1-2_20261016t102353z/stdout.txt"
+  },
+  "base_git_commit": "unknown",
+  "baseline_run_id": null,
+  "code_paths": [
+    "lewm/jepa.py",
+    "lewm/solvers/icem.py",
+    "megakernel/lewm_mk.cu",
+    "megakernel/solver.py"
+  ],
+  "command": [
+    "tools/benchmarks/lewm_plan_benchmark.py",
+    "--episodes",
+    "100",
+    "--run-id",
+    "lewm_mk_h100_e100_s0-1-2_20261016t102353z",
+    "--weights-root",
+    "/weights",
+    "--results-root",
+    "/results",
+    "--seeds",
+    "0,1,2",
+    "--variant",
+    "icem_mk",
+    "--solver",
+    "icem_mk",
+    "--matmul-precision",
+    "highest",
+    "--model-cost-autocast",
+    "none",
+    "--compile-cost",
+    "false",
+    "--samples",
+    "300",
+    "--cem-steps",
+    "30",
+    "--topk",
+    "30",
+    "--horizon",
+    "5",
+    "--receding-horizon",
+    "5",
+    "--warm-start",
+    "true",
+    "--elite-retention",
+    "5",
+    "--colored-noise",
+    "none",
+    "--colored-noise-time",
+    "raw",
+    "--momentum-alpha",
+    "0.0",
+    "--sample-decay",
+    "1.25",
+    "--sample-count-bucket-size",
+    "60",
+    "--profile",
+    "cuda-events",
+    "--cem-telemetry",
+    "none",
+    "--compile-diagnostics",
+    "none",
+    "--icem-step-telemetry",
+    "none",
+    "--disable-instrumentation",
+    "--quality-gate-result",
+    "diagnostic"
+  ],
+  "created_at_utc": "2026-10-16T10:27:59Z",
+  "dataset_sha256": "b6ebd9ac94bbe9e383f6e7a9cd92d74e9aa665ea57b758ed3717b0ee7df8d4fb",
+  "environment": {
+    "cuda": "12.8",
+    "cuda_available": true,
+    "gpu_name": "NVIDIA H100 80GB HBM3",
+    "packages": {
+      "datasets": "2.19.2",
+      "hydra_core": "1.3.7",
+      "modal": null,
+      "omegaconf": "2.3.1",
+      "pyarrow": "20.0.0",
+      "stable_pretraining": "0.1.7",
+      "stable_worldmodel": "0.1.1",
+      "torchvision": "0.26.0+cu128",
+      "transformers": "4.57.6"
+    },
+    "platform": "Linux-4.19.0-gvisor-x86_64-with-glibc2.35",
+    "python": "3.11.5",
+    "resources": {
+      "benchmark_resource_env": {
+        "JEPA_MODAL_CPU_LIMIT": "8.0",
+        "JEPA_MODAL_CPU_REQUEST": "8.0",
+        "JEPA_MODAL_GPU_TYPE": "H100"
+      },
+      "cgroup_cpu": {
+        "period_us": 1000000,
+        "quota_cores": 24.0,
+        "quota_us": 24000000,
+        "source": "cgroup_v1"
+      },
+      "cpu_count": 24,
+      "cuda_current_device": 0,
+      "cuda_device_count": 1,
+      "cuda_device_name": "NVIDIA H100 80GB HBM3",
+      "cuda_device_uuid": "<torch._C._CUuuid object at 0x2ad13973ed70>",
+      "sched_affinity_count": 24,
+      "thread_env": {
+        "MKL_NUM_THREADS": "8",
+        "OMP_NUM_THREADS": "8",
+        "OPENBLAS_NUM_THREADS": "8"
+      },
+      "torch_num_interop_threads": 12,
+      "torch_num_threads": 8
+    },
+    "torch": "2.11.0+cu128"
+  },
+  "git_diff_sha256": "0bef7352960b245fce7f2634454b55f9227d5508382de917caeb3a05bd596949",
+  "metrics_summary": {
+    "cem_calls": {
+      "active_env_count": {
+        "count": 0
+      },
+      "call_count": 0,
+      "cpu_materialization_count_estimate": {
+        "count": 0
+      },
+      "cpu_wall_ms": {
+        "count": 0
+      },
+      "cuda_elapsed_ms": {
+        "count": 0
+      },
+      "final_cpu_materialization_count_estimate": {
+        "count": 0
+      },
+      "gd_accept_rate": {
+        "count": 0
+      },
+      "gd_action_saturation_rate": {
+        "count": 0
+      },
+      "gd_backward_time_ms_mean": {
+        "count": 0
+      },
+      "gd_cost_delta_mean": {
+        "count": 0
+      },
+      "gd_forward_time_ms_mean": {
+        "count": 0
+      },
+      "gd_grad_norm_max": {
+        "count": 0
+      },
+      "gd_grad_norm_mean": {
+        "count": 0
+      },
+      "gd_model_cost_env_candidate_evals": {
+        "count": 0
+      },
+      "gd_model_cost_evals": {
+        "count": 0
+      },
+      "gd_nan_or_inf_count": {
+        "count": 0
+      },
+      "input_total_envs": {
+        "count": 0
+      },
+      "loop_cpu_materialization_count_estimate": {
+        "count": 0
+      },
+      "model_cost_env_candidate_evals": {
+        "count": 0
+      },
+      "model_cost_env_candidate_evals_including_gd": {
+        "count": 0
+      },
+      "model_cost_evals": {
+        "count": 0
+      },
+      "model_cost_evals_including_gd": {
+        "count": 0
+      },
+      "output_cost_count": {
+        "count": 0
+      },
+      "warmup_excluded": false
+    },
+    "evaluations": {
+      "encode_counts_total": {
+        "goal": 0,
+        "initial": 0,
+        "total": 0,
+        "unknown": 0
+      },
+      "evaluation_time_s": {
+        "count": 3,
+        "max": 48.76255131799999,
+        "mean": 48.298619110999994,
+        "min": 47.870677701999995,
+        "p50": 48.26262831299999,
+        "p90": 48.662566717,
+        "p99": 48.75255285789999
+      },
+      "plan_calls_total": 150,
+      "success_rate": {
+        "count": 3,
+        "max": 0.87,
+        "mean": 0.8666666666666667,
+        "min": 0.86
+      }
+    },
+    "plan_latency_ms": {
+      "count": 144,
+      "max": 376.1811828613281,
+      "mean": 106.80470021565755,
+      "min": 48.76028823852539,
+      "p50": 106.2388801574707,
+      "p90": 135.8114273071289,
+      "p99": 330.7675650024412,
+      "warmup_excluded": true
+    }
+  },
+  "modal": {
+    "cpu_limit": "8.0",
+    "cpu_request": "8.0",
+    "enabled": true,
+    "gpu": "H100",
+    "image_label": null,
+    "results_volume": "jepa-results",
+    "weights_volume": "jepa-weights"
+  },
+  "model": "lewm-pusht",
+  "num_eval_episodes": 100,
+  "planner": {
+    "action_block": 5,
+    "cem_steps": 30,
+    "cem_telemetry": "none",
+    "clip_actions": false,
+    "colored_noise": "none",
+    "colored_noise_time": "raw",
+    "compile_cost": false,
+    "compile_diagnostics": "none",
+    "compile_warmup_history": 1,
+    "compile_warmup_sample_counts": null,
+    "elite_retention": 5,
+    "gd_compile_cost": null,
+    "gd_lr": null,
+    "gd_refine_topk": null,
+    "gd_seed_solver": null,
+    "gd_seed_source": null,
+    "gd_steps": null,
+    "horizon": 5,
+    "icem_step_telemetry": "none",
+    "matmul_precision": "highest",
+    "max_compile_signature_records": 8,
+    "model_cost_autocast": "none",
+    "model_cost_evals_per_cem_call": 2820,
+    "momentum_alpha": 0.0,
+    "mppi_temperature": null,
+    "profile": "cuda-events",
+    "receding_horizon": 5,
+    "return_best_elite": false,
+    "sample_count_bucket_size": 60,
+    "sample_decay": 1.25,
+    "samples": 300,
+    "solver_warm_start": null,
+    "static_chain_compile": null,
+    "static_chain_fullgraph": null,
+    "static_chain_mode": null,
+    "static_chain_warmup": null,
+    "topk": 30,
+    "torch_compile_logs": null,
+    "torch_profiler_with_stack": false,
+    "warm_start": true
+  },
+  "quality_gate_result": "diagnostic",
+  "run_id": "lewm_mk_h100_e100_s0-1-2_20261016t102353z",
+  "seed_list": [
+    0,
+    1,
+    2
+  ],
+  "semantic_class": "planner",
+  "variant": "icem_mk",
+  "weights_sha256": "790f58203fba970444c9c437aab2b09ce1c19e1749c90e480161e056b4f1f24f"
+}
