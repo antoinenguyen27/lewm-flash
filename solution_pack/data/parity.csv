@@ -1,0 +1,16 @@
+check,pytorch_bf16_rel_max,megakernel_rel_max,pytorch_bf16_top30,megakernel_top30
+predictor_cost_problem0_S300_scale1.0,0.002245,0.001609,29,29
+predictor_cost_problem0_S60_scale0.3,0.000882,0.000622,28,27
+predictor_cost_problem1_S300_scale1.0,0.002187,0.001303,29,30
+predictor_cost_problem1_S60_scale0.3,0.000464,0.000696,30,29
+predictor_cost_problem2_S300_scale1.0,0.00402,0.001962,30,30
+predictor_cost_problem2_S60_scale0.3,0.001765,0.001213,29,29
+predictor_cost_problem3_S300_scale1.0,0.003819,0.003217,30,30
+predictor_cost_problem3_S60_scale0.3,0.00141,0.001924,30,30
+cost_from_fused_encoder_case0,,0.000474,,30
+cost_from_fused_encoder_case1,,0.000252,,30
+cost_from_fused_encoder_case2,,0.00169,,30
+cost_from_fused_encoder_case3,,0.000586,,30
+cost_from_fused_encoder_case4,,0.003194,,30
+cost_from_fused_encoder_case5,,0.001773,,30
+encoder_embedding_rel_l2,0.005223,0.004105,,

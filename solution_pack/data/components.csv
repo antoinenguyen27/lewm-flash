@@ -1,0 +1,12 @@
+component,value,unit,source
+encoder_fp32_obs_goal,6.91349,ms,"encoder micro-benchmark, PyTorch FP32, observation + goal"
+encoder_fused_obs_goal,1.34458,ms,"encoder micro-benchmark, in-kernel, observation + goal"
+encoder_fused_obs,1.25224,ms,"encoder micro-benchmark, in-kernel, observation only (goal cached)"
+solve_megakernel,41.31854,ms,"single-robot iCEM solve, final kernel (16-CTA clusters)"
+solve_pytorch_compiled_bf16,82.29499,ms,"single-robot iCEM solve, torch.compile + TF32 + BF16"
+solve_pytorch_eager_fp32,600.93442,ms,"single-robot iCEM solve, eager FP32 (micro-benchmark harness)"
+cluster_barrier,0.67945,us,primitive micro-benchmark
+grid_barrier,1.56003,us,primitive micro-benchmark
+empty_launch,13.712,us,primitive micro-benchmark
+reference_encodes_per_plan_per_robot,60.0,count,"reference planner telemetry, 100-robot evaluation, plan call 26"
+reference_solver_share_of_plan_call,0.99285,fraction,"reference planner telemetry, 100-robot evaluation, plan call 26"
